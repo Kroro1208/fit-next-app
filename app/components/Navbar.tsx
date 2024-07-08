@@ -3,6 +3,8 @@ import Link from "next/link"
 import logo from "../../public/fitness.gif"
 import { ThemeToggle } from "./ThemeToggle"
 import { Button } from "@/components/ui/button"
+import {RegisterLink, LoginLink} from "@kinde-oss/kinde-auth-nextjs/components";
+
 
 const Navbar = () => {
     return (
@@ -12,8 +14,12 @@ const Navbar = () => {
             </Link>
             <div className="flex items-center gap-x-4">
                 <ThemeToggle />
-                <Button variant='secondary'>登録</Button>
-                <Button>ログイン</Button>
+                <Button variant='secondary' asChild>
+                    <RegisterLink>登録</RegisterLink>
+                </Button>
+                <Button asChild>
+                    <LoginLink>ログイン</LoginLink>
+                </Button>
             </div>
         </nav>
     )
