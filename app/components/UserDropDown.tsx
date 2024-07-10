@@ -30,7 +30,7 @@ const UserDropDown = ({ userImage }: iAppProps) => {
                 <Link href="/create">投稿作成</Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
-                <Link href="/setting">設定</Link>
+                <Link href="/settings">設定</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
