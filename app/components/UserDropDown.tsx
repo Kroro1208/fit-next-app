@@ -32,11 +32,10 @@ const UserDropDown = ({ userImage }: iAppProps) => {
             <DropdownMenuItem>
                 <Link href="/setting">設定</Link>
             </DropdownMenuItem>
-            <DropdownMenuSeparator>
-                <DropdownMenuItem>
-                    <LogoutLink className="w-full">ログアウト</LogoutLink>
-                </DropdownMenuItem>
-            </DropdownMenuSeparator>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+                <LogoutLink className="w-full">ログアウト</LogoutLink>
+            </DropdownMenuItem>
         </DropdownMenuContent>
     </DropdownMenu>
   )
