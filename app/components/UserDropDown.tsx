@@ -24,7 +24,7 @@ const UserDropDown = ({ userImage }: iAppProps) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[200px]">
             <DropdownMenuItem>
-                <Link href="/r/create">コミュニティをつくる</Link>
+                <Link href="/fit/create">コミュニティをつくる</Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
                 <Link href="/create">投稿作成</Link>
