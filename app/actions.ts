@@ -1,26 +1,42 @@
 "use server";
-
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
 import prisma from "./lib/db";
+import { Prisma } from "@prisma/client";
 
-export async function updateUsername(formdata: FormData){
+export async function updateUsername(prevState: any, formData: FormData){
     const { getUser } = getKindeServerSession();
     const user = await getUser();
     if(!user) {
         redirect('/api/auth/login');
     }
 
-    const username = formdata.get('username') as string;
+    const username = formData.get('username') as string;
 
-    await prisma.user.update({
-        where: {
-            id: user.id,
-        },
-        data: {
-            userName: username
+    try {
+        await prisma.user.update({
+            where: {
+                id: user.id,
+            },
+            data: {
+                userName: username
+            }
+        });
+        return {
+            message: 'ユーザー名が更新されました',
+            status: 'success',
+        };
+    } catch (error) {
+        if(error instanceof Prisma.PrismaClientKnownRequestError){
+            if(error.code === "P2002") {
+                return {
+                    mmessage: 'このユーザー名はすでに使用されています',
+                    status: 'false'
+                }
+            }
         }
-    });
+    }
+
 
     return {
         message: 'ユーザー名が更新されました'
