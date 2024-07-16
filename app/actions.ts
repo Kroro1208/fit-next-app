@@ -35,10 +35,35 @@ export async function updateUsername(prevState: any, formData: FormData){
                 }
             }
         }
+        throw error;
+    }
+}
+
+export const createCommunity = async (prevState: any, formData: FormData) => {
+    const { getUser } = getKindeServerSession();
+    const user = await getUser();
+    if(!user) {
+        return redirect('/api/auth/login');
     }
 
-
-    return {
-        message: 'ユーザー名が更新されました'
+    try {
+        const name = formData.get("name") as string;
+        const data = await prisma.community.create({
+            data: {
+                name: name,
+                userId: user.id,
+            }
+        });
+        return redirect('/');
+    } catch (error) {
+        if(error instanceof Prisma.PrismaClientKnownRequestError) {
+            if(error.code === 'P2202'){
+                return {
+                    message: 'この名前はすでに使用されています',
+                    status: 'error'
+                }
+            }
+        }
+        throw error;
     }
 }
