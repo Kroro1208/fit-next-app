@@ -1,4 +1,6 @@
+"use client";
 import { createCommunity } from '@/app/actions'
+import SubmitButton from '@/app/components/SubmitButton';
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -42,7 +44,7 @@ const CreateCommunity = () => {
                     fit/
                 </p>
                 <Input
-                    name='username'
+                    name='name'
                     required
                     className='pl-6'
                     min={2}
@@ -53,7 +55,7 @@ const CreateCommunity = () => {
                 <Button variant="secondary" asChild>
                     <Link href="/">キャンセル</Link>
                 </Button>
-                <Button>登録する</Button>
+                <SubmitButton text="コミュニティを作成"/>
             </div>
         </form>
     </div>

@@ -47,8 +47,8 @@ const SetttingsForm = ({ username }: { username: string | null | undefined }) =>
           className='mt-2'
           min={2}
           max={21}/>
-          {state?.message && (
-                  <p className={`mt-2 ${state.status === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+          {state?.status === "error" && (
+                  <p className="text-destructive mt-1">
                     {state.message}
                   </p>
                 )}
@@ -56,7 +56,7 @@ const SetttingsForm = ({ username }: { username: string | null | undefined }) =>
         <Button variant="secondary" asChild type='button'>
           <Link href="/">キャンセル</Link>
         </Button>
-        <SubmitButton />
+        <SubmitButton text="更新する"/>
       </div>
     </form>
   )

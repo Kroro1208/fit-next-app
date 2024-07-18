@@ -4,7 +4,7 @@ import { Loader2 } from 'lucide-react';
 import React from 'react'
 import { useFormStatus } from 'react-dom';
 
-const SubmitButton = () => {
+const SubmitButton = ({ text }: { text: string }) => {
     const { pending } = useFormStatus();
   return (
     <>
@@ -15,7 +15,7 @@ const SubmitButton = () => {
         </Button>
      ) : (
          <Button type='submit'>
-            更新する
+            {text}
          </Button>
      )}
     </>
