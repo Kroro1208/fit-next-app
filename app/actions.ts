@@ -57,7 +57,7 @@ export const createCommunity = async (prevState: any, formData: FormData) => {
         return redirect('/');
     } catch (error) {
         if(error instanceof Prisma.PrismaClientKnownRequestError) {
-            if(error.code === 'P2202'){
+            if(error.code === 'P2002'){
                 return {
                     message: 'この名前はすでに使用されています',
                     status: 'error'
