@@ -67,3 +67,7 @@ export const createCommunity = async (prevState: any, formData: FormData) => {
         throw error;
     }
 }
+
+export async function updateCommunity() {
+    
+}

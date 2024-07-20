@@ -50,7 +50,6 @@ const CreateCommunity = () => {
                         min={2}
                         max={21}/>
                 </div>
-                {/* TODO エラーメッセージ出す */}
                 <p className='mt-1 text-destructive'>{state.message}</p>
                 <div className='w-full flex mt-5 gap-x-5 justify-end'>
                     <Button variant="secondary" asChild>
