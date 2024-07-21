@@ -1,7 +1,10 @@
 import SubDesciptionForm from '@/app/components/SubDesciptionForm'
 import prisma from '@/app/lib/db'
+import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server'
+import { AlarmClock } from 'lucide-react';
 import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
@@ -51,6 +54,23 @@ const CommunityRoute = async ({ params }: { params: {id: string}}) => {
                                 {data?.description}
                             </p>
                         )}
+                        <div className='flex items-center gap-x-2 mt-4'>
+                            <AlarmClock className='h-5 w-5 text-muted-foreground'/>
+                        <p className='text-muted-foreground font-medium text-sm'>
+                            作成日: {new Date(data?.createdAt as Date).toLocaleDateString('ja-JP', {
+                            year: 'numeric',
+                            month: 'long',
+                            weekday: 'long',
+                            day: 'numeric'
+                            })}
+                        </p>
+                        </div>
+                        <Separator className='my-5'/>
+                        <Button className='rounded-full w-full' asChild>
+                            <Link href={user?.id ? `/fit/${data?.name}/create` : '/api/auth/login'}>
+                                投稿作成
+                            </Link>
+                        </Button>
                     </div>
                 </Card>
             </div>
