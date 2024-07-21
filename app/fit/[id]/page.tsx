@@ -1,3 +1,4 @@
+import { updateSubDescription } from '@/app/actions'
 import SaveButton from '@/app/components/SaveButton'
 import prisma from '@/app/lib/db'
 import { Card } from '@/components/ui/card'
@@ -25,7 +26,7 @@ async function getData(name: string) {
 const CommunityRoute = async ({ params }: { params: {id: string}}) => {
     const data = await getData(params.id);
     const { getUser } = getKindeServerSession();
-    const user = getUser();
+    const user = await getUser();
     return (
         <div className='max-w-[1000px] mx-auto flex gap-x-10 mt-4'>
             <div className='w-[65%] flex flex-col gap-y-5'>
@@ -46,11 +47,13 @@ const CommunityRoute = async ({ params }: { params: {id: string}}) => {
                             </Link>
                         </div>
                         {user?.id === data?.userId ? (
-                            <form action={} className='mt-3'>
+                            <form action={updateSubDescription} className='mt-3'>
+                                <input type="hidden" name='subName' value={params.id} />
                                 <Textarea
-                                maxLength={100}
-                                name='description'
-                                placeholder='コミュニティについての説明'/>
+                                    maxLength={100}
+                                    name='description'
+                                    placeholder='コミュニティについての説明'
+                                />
                                 <SaveButton />
                             </form>
                         ): (
@@ -62,7 +65,7 @@ const CommunityRoute = async ({ params }: { params: {id: string}}) => {
                 </Card>
             </div>
         </div>
-    )
+    );
 }
 
 export default CommunityRoute

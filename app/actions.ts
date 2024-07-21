@@ -68,6 +68,21 @@ export const createCommunity = async (prevState: any, formData: FormData) => {
     }
 }
 
-export async function updateCommunity() {
-    
+export async function updateSubDescription(formData: FormData) {
+    const { getUser } = getKindeServerSession();
+    const user = getUser();
+    if(!user) {
+        return redirect('/api/auth/login');
+    }
+    const subName = formData.get('subName') as string;
+    const description = formData.get('description') as string;
+
+    await prisma.community.update({
+        where: {
+            name: subName,
+        },
+        data: {
+            description: description
+        }
+    })
 }
