@@ -1,8 +1,6 @@
-import { updateSubDescription } from '@/app/actions'
-import SaveButton from '@/app/components/SaveButton'
+import SubDesciptionForm from '@/app/components/SubDesciptionForm'
 import prisma from '@/app/lib/db'
 import { Card } from '@/components/ui/card'
-import { Textarea } from '@/components/ui/textarea'
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -34,7 +32,7 @@ const CommunityRoute = async ({ params }: { params: {id: string}}) => {
             </div>
             <div className='w-[35%]'>
                 <Card>
-                <div className='bg-muted p-4 font-semibold'>コミュニティについて</div>
+                    <div className='bg-muted p-4 font-semibold'>コミュニティについて</div>
                     <div className='p-4'>
                         <div className='flex items-center gap-x-3'>
                             <Image
@@ -47,15 +45,7 @@ const CommunityRoute = async ({ params }: { params: {id: string}}) => {
                             </Link>
                         </div>
                         {user?.id === data?.userId ? (
-                            <form action={updateSubDescription} className='mt-3'>
-                                <input type="hidden" name='subName' value={params.id} />
-                                <Textarea
-                                    maxLength={100}
-                                    name='description'
-                                    placeholder='コミュニティについての説明'
-                                />
-                                <SaveButton />
-                            </form>
+                            <SubDesciptionForm description={data?.description} subName={params.id}/>
                         ): (
                             <p className='text-sm font-normal text-secondary-foreground mt-2'>
                                 {data?.description}

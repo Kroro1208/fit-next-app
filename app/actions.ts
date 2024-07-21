@@ -54,7 +54,7 @@ export const createCommunity = async (prevState: any, formData: FormData) => {
                 userId: user.id,
             }
         });
-        return redirect('/');
+        return redirect(`/fit/${data.name}`);
     } catch (error) {
         if(error instanceof Prisma.PrismaClientKnownRequestError) {
             if(error.code === 'P2002'){
@@ -68,21 +68,34 @@ export const createCommunity = async (prevState: any, formData: FormData) => {
     }
 }
 
-export async function updateSubDescription(formData: FormData) {
+export async function updateSubDescription(prevState: any, formData: FormData) {
     const { getUser } = getKindeServerSession();
     const user = getUser();
     if(!user) {
         return redirect('/api/auth/login');
     }
-    const subName = formData.get('subName') as string;
-    const description = formData.get('description') as string;
 
-    await prisma.community.update({
-        where: {
-            name: subName,
-        },
-        data: {
-            description: description
+    try {
+        const subName = formData.get('subName') as string;
+        const description = formData.get('description') as string;
+    
+        await prisma.community.update({
+            where: {
+                name: subName,
+            },
+            data: {
+                description: description
+            }
+        });
+        
+        return {
+            status: 'green',
+            message: '説明が更新されました'
+        };
+    } catch (error) {
+        return {
+            status: 'error',
+            message: '更新に失敗しました'
         }
-    })
+    };
 }
