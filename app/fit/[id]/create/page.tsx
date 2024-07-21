@@ -1,17 +1,19 @@
 "use client";
 import { Card, CardFooter, CardHeader } from '@/components/ui/card'
 import Image from 'next/image'
-import React from 'react'
+import React, { useState } from 'react'
 import image from '../../../../public/fitness.png'
 import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Text, Upload, Video } from 'lucide-react'
+import { Text, Video } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { TipTapEditor } from '@/app/components/TipTabEditor'
 import SubmitButton from '@/app/components/SubmitButton'
 import { UploadDropzone } from '@/app/components/Uploadthing'
+import { createPost } from '@/app/actions';
+import { JSONContent } from '@tiptap/react';
 
 const rules = [
     {
@@ -37,6 +39,10 @@ const rules = [
 ]
 
 const CreatePostRoute = ({params}: {params: {id: string}}) => {
+    const [imageUrl, setImageUrl] = useState<null | string>(null);
+    const [json, setJson] = useState<null | JSONContent>(null);
+    const [title, setTitle] = useState<null | string>(null);
+    const createPostFit = createPost.bind(null, {jsonContent: json});
     return (
         <div className='max-w-[1000px] mx-auto flex gap-x-10 mt-4'>
             <div className='w-[65%] flex flex-col gap-y-5'>
@@ -56,11 +62,17 @@ const CreatePostRoute = ({params}: {params: {id: string}}) => {
                     </TabsList>
                     <TabsContent value='post'>
                         <Card>
-                            <form>
+                            <form action={createPostFit}>
+                                <input type="hidden" name='imageUrl' value={imageUrl ?? undefined} />
+                                <input type="hidden" name='subName' value={params.id} />
                                 <CardHeader>
-                                    <Label></Label>
-                                    <Input required name='title' placeholder='Title'/>
-                                    <TipTapEditor />
+                                    <Label>タイトル</Label>
+                                    <Input required
+                                        name='title'
+                                        placeholder='Title'
+                                        value={title ?? undefined}
+                                        onChange={(e) => setTitle(e.target.value)}/>
+                                    <TipTapEditor setJson={setJson} json={json}/>
                                 </CardHeader>
                                 <CardFooter>
                                     <SubmitButton text="投稿作成"/>
@@ -76,11 +88,11 @@ const CreatePostRoute = ({params}: {params: {id: string}}) => {
                                     ut-label:text-primary ut-button:ut-uploading::bg-primary/50
                                     ut-button:ut-uploading:after:bg-primary'
                                     onClientUploadComplete={(res) => {
-                                        console.log(res);
+                                        setImageUrl(res[0].url);
                                     }}
                                     endpoint="imageUploader"
                                     onUploadError={(error: Error) => {
-                                        alert('Error');
+                                        alert('エラーが発生しました');
                                 }}/>
                             </CardHeader>
                         </Card>

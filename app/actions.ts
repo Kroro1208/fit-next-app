@@ -3,6 +3,7 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
 import prisma from "./lib/db";
 import { Prisma } from "@prisma/client";
+import { JSONContent } from '@tiptap/react';
 
 export async function updateUsername(prevState: any, formData: FormData){
     const { getUser } = getKindeServerSession();
@@ -98,4 +99,29 @@ export async function updateSubDescription(prevState: any, formData: FormData) {
             message: '更新に失敗しました'
         }
     };
+}
+
+export async function createPost({ jsonContent }: {jsonContent: JSONContent | null}, formData: FormData){
+    console.log("Prisma object:", prisma); // デバッグ用
+
+    const { getUser } = getKindeServerSession();
+    const user = await getUser();
+    if(!user) {
+        return redirect('/api/auth/login');
+    }
+    
+    const title = formData.get('title') as string;
+    const imageUrl = formData.get('imageUrl') as string | null;
+    const subName = formData.get('subName') as string;
+    await prisma.post.create({
+        data: {
+            title,
+            imageString: imageUrl ?? undefined,
+            subName,
+            userId: user.id,
+            textContent: jsonContent ?? undefined,
+        }
+    });
+
+    return redirect('/');
 }
