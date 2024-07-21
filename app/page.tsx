@@ -1,7 +1,7 @@
 export default function Home() {
   return (
-    <div className="text-2xl font-extrabold">
-      <h1>Fit Next App</h1>
+    <div className="text-2xl font-extrabold p-5">
+      <h1>Demo</h1>
     </div>
   );
 }
