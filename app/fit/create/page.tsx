@@ -20,7 +20,7 @@ const CreateCommunity = () => {
     const { toast } = useToast();
 
     useEffect(() => {
-        if(state.status === 'error') {
+        if(state?.status === 'error') {
             toast({
                 title: "Error",
                 description: state.message,
@@ -50,7 +50,7 @@ const CreateCommunity = () => {
                         min={2}
                         max={21}/>
                 </div>
-                <p className='mt-1 text-destructive'>{state.message}</p>
+                <p className='mt-1 text-destructive'>{state?.message}</p>
                 <div className='w-full flex mt-5 gap-x-5 justify-end'>
                     <Button variant="secondary" asChild>
                         <Link href="/">キャンセル</Link>

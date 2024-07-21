@@ -83,17 +83,23 @@ const CreatePostRoute = ({params}: {params: {id: string}}) => {
                     <TabsContent value='image'>
                         <Card>
                             <CardHeader>
-                                <UploadDropzone
-                                    className='ut-button:bg-primary ut-button:ut-readying:bg-primary/50
-                                    ut-label:text-primary ut-button:ut-uploading::bg-primary/50
-                                    ut-button:ut-uploading:after:bg-primary'
-                                    onClientUploadComplete={(res) => {
-                                        setImageUrl(res[0].url);
-                                    }}
-                                    endpoint="imageUploader"
-                                    onUploadError={(error: Error) => {
-                                        alert('エラーが発生しました');
-                                }}/>
+                                {imageUrl === null ? (
+                                    <UploadDropzone
+                                        className='ut-button:bg-primary ut-button:ut-readying:bg-primary/50
+                                        ut-label:text-primary ut-button:ut-uploading::bg-primary/50
+                                        ut-button:ut-uploading:after:bg-primary'
+                                        onClientUploadComplete={(res) => {
+                                            setImageUrl(res[0].url);
+                                        }}
+                                        endpoint="imageUploader"
+                                        onUploadError={(error: Error) => {
+                                            alert('エラーが発生しました');
+                                    }}/>
+                                ) : (
+                                    <Image
+                                    className='h-80 rounded-lg w-full object-contain'
+                                    src={imageUrl} alt='uploadImage' width={500} height={400}/>
+                                )}
                             </CardHeader>
                         </Card>
                     </TabsContent>

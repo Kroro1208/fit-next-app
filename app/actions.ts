@@ -101,9 +101,10 @@ export async function updateSubDescription(prevState: any, formData: FormData) {
     };
 }
 
-export async function createPost({ jsonContent }: {jsonContent: JSONContent | null}, formData: FormData){
-    console.log("Prisma object:", prisma); // デバッグ用
-
+export async function createPost(
+    { jsonContent }: {jsonContent: JSONContent | null},
+        formData: FormData
+    ){
     const { getUser } = getKindeServerSession();
     const user = await getUser();
     if(!user) {
@@ -113,6 +114,7 @@ export async function createPost({ jsonContent }: {jsonContent: JSONContent | nu
     const title = formData.get('title') as string;
     const imageUrl = formData.get('imageUrl') as string | null;
     const subName = formData.get('subName') as string;
+
     await prisma.post.create({
         data: {
             title,
