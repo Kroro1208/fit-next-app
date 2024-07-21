@@ -1,3 +1,4 @@
+"use client";
 import { Card, CardFooter, CardHeader } from '@/components/ui/card'
 import Image from 'next/image'
 import React from 'react'
@@ -5,11 +6,12 @@ import image from '../../../../public/fitness.png'
 import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Text, Video } from 'lucide-react'
+import { Text, Upload, Video } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { TipTapEditor } from '@/app/components/TipTabEditor'
 import SubmitButton from '@/app/components/SubmitButton'
+import { UploadDropzone } from '@/app/components/Uploadthing'
 
 const rules = [
     {
@@ -64,6 +66,23 @@ const CreatePostRoute = ({params}: {params: {id: string}}) => {
                                     <SubmitButton text="投稿作成"/>
                                 </CardFooter>
                             </form>
+                        </Card>
+                    </TabsContent>
+                    <TabsContent value='image'>
+                        <Card>
+                            <CardHeader>
+                                <UploadDropzone
+                                    className='ut-button:bg-primary ut-button:ut-readying:bg-primary/50
+                                    ut-label:text-primary ut-button:ut-uploading::bg-primary/50
+                                    ut-button:ut-uploading:after:bg-primary'
+                                    onClientUploadComplete={(res) => {
+                                        console.log(res);
+                                    }}
+                                    endpoint="imageUploader"
+                                    onUploadError={(error: Error) => {
+                                        alert('Error');
+                                }}/>
+                            </CardHeader>
                         </Card>
                     </TabsContent>
                 </Tabs>
