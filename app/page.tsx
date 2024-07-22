@@ -5,16 +5,36 @@ import HomeImage from "../public/idea.png"
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import CreatePostCard from "./components/CreatePostCard";
+import prisma from "./lib/db";
+
+async function getData() {
+  const data = await prisma.post.findMany({
+    select: {
+      title: true,
+      createdAt: true,
+      textContent: true,
+      id: true,
+      imageString: true,
+      User: {
+        select: {
+          userName: true,
+        }
+      },
+      subName: true
+    }
+  });
+}
 
 export default function Home() {
   return (
     <div className="max-w-[1000px] mx-auto flex gap-x-10 mt4">
       <div className="w-[65%] flex flex-col gap-y-5">
-        <h1>Deomo</h1>
+        <CreatePostCard />
       </div>
       <div className="w-[35%]">
-        <Card>
-          <Image src={Banner} alt="banner"/>
+        <Card className="mt-5">
+          <Image src={Banner} alt="banner" className="rounded-lg"/>
           <div className="p-2">
             <div className="flex items-center">
               <Image src={HomeImage} alt="homeImage" className="w-20 h-20 -mt-6"/>
