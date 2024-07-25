@@ -24,6 +24,7 @@ model User {
   userName String? @unique
   createdCommyunitys Community[]
   createdAt DateTime @default(now())
+  Vote Vote[]
   posts Post[]
 }
 
@@ -44,10 +45,27 @@ model Post {
   textContent Json?
   imageString String?
 
+  Vote Vote[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   Community Community? @relation(fields: [subName], references: [name])
   subName String?
   User User? @relation(fields: [userId], references: [id])
   userId String?
+}
+
+enum TypeOfVote {
+  UP
+  DOWN
+}
+
+model Vote {
+  id String @id @default(uuid())
+  Post Post? @relation(fields: [postId],  references: [id])
+  postId String?
+  User User? @relation(fields: [userId], references: [id])
+  userId String?
+
+  voteType TypeOfVote
 }

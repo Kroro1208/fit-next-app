@@ -3,7 +3,6 @@ import { Card } from '@/components/ui/card'
 import { ArrowDown, ArrowUp, MessageCircle } from 'lucide-react'
 import Link from 'next/link'
 import React from 'react'
-import { JSONContent } from '@tiptap/react';
 import Image from 'next/image'
 import CopyLink from './CopyLink'
 
@@ -38,7 +37,7 @@ const PostCard = ({id, title, imageString, jsonContent, subName, userName}: Prop
                         fit/{subName}
                     </Link>
                     <p className='text-xs text-muted-foreground'>
-                        投稿者: <span className='hover:text-primary'>{title}</span>
+                        {userName}: <span className='hover:text-primary'>{title}</span>
                     </p>
                 </div>
                 <div className='flex items-center gap-x-2 p-2'>

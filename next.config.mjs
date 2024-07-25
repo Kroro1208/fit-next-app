@@ -3,7 +3,7 @@ const nextConfig = {
     images: {
         domains: ['lh3.googleusercontent.com', 'avatar.vercel.sh', 'utfs.io'],
       },
-    post: ""
+    // post: ""
 };
 
 export default nextConfig;
