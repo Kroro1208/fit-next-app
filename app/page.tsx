@@ -30,6 +30,9 @@ async function getData() {
           postId: true,
         },
       },
+    },
+    orderBy: {
+      createdAt: "desc",
     }
   });
 

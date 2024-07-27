@@ -1,6 +1,5 @@
-import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { ArrowDown, MessageCircle } from 'lucide-react'
+import { MessageCircle } from 'lucide-react'
 import Link from 'next/link'
 import React from 'react'
 import Image from 'next/image'
@@ -8,6 +7,7 @@ import CopyLink from './CopyLink'
 import { handleVote } from '../actions'
 import UpVoteButton from './UpVoteButton'
 import DownVoteButton from './DownVoteButton'
+import RenderJson from './RenderJson'
 
 interface Props {
     title: string;
@@ -26,17 +26,13 @@ const PostCard = ({id, title, imageString, jsonContent, subName, userName, voteC
                 <form action={handleVote}>
                     <input type="hidden" name='voteDirection' value="UP"/>
                     <input type="hidden" name='postId' value={id}/>
-                    <Button variant='outline' size="sm" type='submit'>
-                        <UpVoteButton />
-                    </Button>
+                    <UpVoteButton />
                 </form>
                 {voteCount}
                 <form action={handleVote}>
                     <input type="hidden" name='voteDirection' value="DOWN"/>
                     <input type="hidden" name='postId' value={id}/>
-                    <Button variant='outline' size="sm" type='submit'>
-                        <DownVoteButton />
-                    </Button>
+                    <DownVoteButton />
                 </form>
             </div>
             <div>
@@ -54,7 +50,7 @@ const PostCard = ({id, title, imageString, jsonContent, subName, userName, voteC
                         </Link>
                 </div>
                 <div className='max-h-[300px] overflow-hidden'>
-                    {imageString && (
+                    {imageString ? (
                         <Image
                             src={imageString}
                             alt='postImage'
@@ -62,6 +58,10 @@ const PostCard = ({id, title, imageString, jsonContent, subName, userName, voteC
                             height={300}
                             className='w-full h-full'
                         />
+                    ) : jsonContent ? (
+                        <RenderJson data={jsonContent}/>
+                    ) : (
+                        <p>投稿内容がありません</p>
                     )}
                 </div>
                 <div className='m-3 flex items-center gap-x-5'>

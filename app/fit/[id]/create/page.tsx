@@ -69,8 +69,8 @@ const CreatePostRoute = ({params}: {params: {id: string}}) => {
                                     <Label>タイトル</Label>
                                     <Input required
                                         name='title'
-                                        placeholder='Title'
-                                        value={title ?? undefined}
+                                        placeholder='タイトルを入力'
+                                        value={title ?? ""}
                                         onChange={(e) => setTitle(e.target.value)}/>
                                     <TipTapEditor setJson={setJson} json={json}/>
                                 </CardHeader>
