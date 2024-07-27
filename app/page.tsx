@@ -22,7 +22,14 @@ async function getData() {
           userName: true,
         }
       },
-      subName: true
+      subName: true,
+      Vote: {
+        select: {
+          userId: true,
+          voteType: true,
+          postId: true,
+        },
+      },
     }
   });
 
@@ -37,13 +44,18 @@ export default async function Home() {
         <CreatePostCard />
         {data.map((post) => (
           <PostCard
-          key={post.id}
-          id={post.id}
-          imageString={post.imageString}
-          jsonContent={post.textContent}
-          subName={post.subName as string}
-          title={post.title}
-          userName={post.User?.userName as string}
+            key={post.id}
+            id={post.id}
+            imageString={post.imageString}
+            jsonContent={post.textContent}
+            subName={post.subName as string}
+            title={post.title}
+            userName={post.User?.userName as string}
+            voteCount={post.Vote.reduce((acc, vote) => {
+              if(vote.voteType === 'UP') return acc + 1;
+              if(vote.voteType === 'DOWN') return acc - 1;
+              return acc;
+            }, 0)}
           />
         ))}
       </div>

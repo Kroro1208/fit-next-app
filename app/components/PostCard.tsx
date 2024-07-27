@@ -5,6 +5,7 @@ import Link from 'next/link'
 import React from 'react'
 import Image from 'next/image'
 import CopyLink from './CopyLink'
+import { handleVote } from '../actions'
 
 interface Props {
     title: string;
@@ -13,20 +14,25 @@ interface Props {
     subName: string;
     userName: string;
     imageString: string | null;
+    voteCount: number;
 }
 
-const PostCard = ({id, title, imageString, jsonContent, subName, userName}: Props) => {
+const PostCard = ({id, title, imageString, jsonContent, subName, userName, voteCount }: Props) => {
     return (
         <Card className='flex relative overflow-hidden'>
             <div className='flex flex-col items-center gap-y-2 bg-muted p-2'>
-                <form action="">
-                    <Button variant='outline' size="sm">
+                <form action={handleVote}>
+                    <input type="hidden" name='voteDirection' value="UP"/>
+                    <input type="hidden" name='postId' value={id}/>
+                    <Button variant='outline' size="sm" type='submit'>
                         <ArrowUp className='h-4 w-4'/>
                     </Button>
                 </form>
-                0
-                <form action="">
-                <Button variant='outline' size="sm">
+                {voteCount}
+                <form action={handleVote}>
+                    <input type="hidden" name='voteDirection' value="DOWN"/>
+                    <input type="hidden" name='postId' value={id}/>
+                    <Button variant='outline' size="sm" type='submit'>
                         <ArrowDown className='h-4 w-4'/>
                     </Button>
                 </form>
