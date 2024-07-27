@@ -41,12 +41,12 @@ const PostCard = ({id, title, imageString, jsonContent, subName, userName, voteC
                         fit/{subName}
                     </Link>
                     <p className='text-xs text-muted-foreground'>
-                        {userName}: <span className='hover:text-primary'>{title}</span>
+                        {userName}: <span className='hover:text-primary'>{`${subName}`}</span>
                     </p>
                 </div>
                 <div className='flex items-center gap-x-2 p-2'>
                         <Link href="/" className='font-semibold text-xs'>
-                            <h1 className='font-medium mt-1 text-lg'>投稿内容</h1>
+                            <h1 className='font-medium mt-1 text-lg'>{title}</h1>
                         </Link>
                 </div>
                 <div className='max-h-[300px] overflow-hidden'>

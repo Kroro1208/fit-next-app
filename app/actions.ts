@@ -116,7 +116,7 @@ export async function createPost(
     const imageUrl = formData.get('imageUrl') as string | null;
     const subName = formData.get('subName') as string;
 
-    await prisma.post.create({
+    const data = await prisma.post.create({
         data: {
             title,
             imageString: imageUrl ?? undefined,
@@ -126,7 +126,7 @@ export async function createPost(
         }
     });
 
-    return redirect('/');
+    return redirect(`/`);
 }
 
 export async function handleVote(formData: FormData) {

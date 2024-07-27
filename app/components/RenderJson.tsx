@@ -5,7 +5,7 @@ const doc: NodeHandler = (props) => {
 }
 
 const paragraph: NodeHandler = (props) => {
-    return <>{props.children}</>;
+    return <p>{props.children}</p>;
 }
 
 const text: NodeHandler = (props) => {
@@ -23,7 +23,7 @@ const RenderJson = ({data}: {data: any}) => {
     <div className="px-2 pt-2 prose">
         <TipTapRender handlers={handlers} node={data}/>
     </div>
-  )
+  );
 }
 
 export default RenderJson
