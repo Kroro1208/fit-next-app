@@ -1,11 +1,13 @@
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { ArrowDown, ArrowUp, MessageCircle } from 'lucide-react'
+import { ArrowDown, MessageCircle } from 'lucide-react'
 import Link from 'next/link'
 import React from 'react'
 import Image from 'next/image'
 import CopyLink from './CopyLink'
 import { handleVote } from '../actions'
+import UpVoteButton from './UpVoteButton'
+import DownVoteButton from './DownVoteButton'
 
 interface Props {
     title: string;
@@ -25,7 +27,7 @@ const PostCard = ({id, title, imageString, jsonContent, subName, userName, voteC
                     <input type="hidden" name='voteDirection' value="UP"/>
                     <input type="hidden" name='postId' value={id}/>
                     <Button variant='outline' size="sm" type='submit'>
-                        <ArrowUp className='h-4 w-4'/>
+                        <UpVoteButton />
                     </Button>
                 </form>
                 {voteCount}
@@ -33,7 +35,7 @@ const PostCard = ({id, title, imageString, jsonContent, subName, userName, voteC
                     <input type="hidden" name='voteDirection' value="DOWN"/>
                     <input type="hidden" name='postId' value={id}/>
                     <Button variant='outline' size="sm" type='submit'>
-                        <ArrowDown className='h-4 w-4'/>
+                        <DownVoteButton />
                     </Button>
                 </form>
             </div>
