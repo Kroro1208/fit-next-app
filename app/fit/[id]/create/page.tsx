@@ -40,9 +40,12 @@ const rules = [
 
 const CreatePostRoute = ({params}: {params: {id: string}}) => {
     const [imageUrl, setImageUrl] = useState<null | string>(null);
-    const [json, setJson] = useState<null | JSONContent>(null);
+    // const [json, setJson] = useState<null | JSONContent>(null);
+    const [jsonString, setJsonString] = useState<string | null>(null);
     const [title, setTitle] = useState<null | string>(null);
-    const createPostFit = createPost.bind(null, {jsonContent: json});
+    // const createPostFit = createPost.bind(null, {jsonContent: json});
+    const createPostFit = createPost.bind(null, { jsonString });
+
     return (
         <div className='max-w-[1000px] mx-auto flex gap-x-10 mt-4'>
             <div className='w-[65%] flex flex-col gap-y-5'>
@@ -65,6 +68,7 @@ const CreatePostRoute = ({params}: {params: {id: string}}) => {
                             <form action={createPostFit}>
                                 <input type="hidden" name='imageUrl' value={imageUrl ?? undefined} />
                                 <input type="hidden" name='subName' value={params.id} />
+                                <input type="hidden" name="jsonString" value={jsonString ?? undefined} />
                                 <CardHeader>
                                     <Label>タイトル</Label>
                                     <Input required
@@ -72,7 +76,7 @@ const CreatePostRoute = ({params}: {params: {id: string}}) => {
                                         placeholder='タイトルを入力'
                                         value={title ?? ""}
                                         onChange={(e) => setTitle(e.target.value)}/>
-                                    <TipTapEditor setJson={setJson} json={json}/>
+                                <TipTapEditor setJsonString={setJsonString} jsonString={jsonString} />
                                 </CardHeader>
                                 <CardFooter>
                                     <SubmitButton text="投稿作成"/>

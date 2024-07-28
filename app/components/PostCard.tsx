@@ -59,7 +59,7 @@ const PostCard = ({id, title, imageString, jsonContent, subName, userName, voteC
                             className='w-full h-full'
                         />
                     ) : jsonContent ? (
-                        <RenderJson data={jsonContent}/>
+                        <RenderJson data={jsonContent} />
                     ) : (
                         <p>投稿内容がありません</p>
                     )}

@@ -45,19 +45,19 @@ export const Menubar = ({editor}: {editor: Editor | null }) => {
     );
 };
 
-export function TipTapEditor({setJson, json}: {setJson: any, json: JSONContent | null}) {
+export function TipTapEditor({setJsonString, jsonString}: {setJsonString: (json: string | null) => void, jsonString: string | null}) {
     const editor = useEditor({
-        extensions: [StarterKit],
-        content: json ?? "Hello World",
-        editorProps: {
-            attributes: {
-                class: 'prose'
-            }
-        },
-        onUpdate: ({editor}) => {
-            const json = editor.getJSON();
-            setJson(json);
+      extensions: [StarterKit],
+      content: jsonString ? JSON.parse(jsonString) : "Hello World",
+      editorProps: {
+        attributes: {
+          class: 'prose'
         }
+      },
+      onUpdate: ({editor}) => {
+        const json = editor.getJSON();
+        setJsonString(JSON.stringify(json));
+      }
     });
     return (
         <div>

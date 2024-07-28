@@ -12,18 +12,40 @@ const text: NodeHandler = (props) => {
     return <span>{props.node.text}</span>;
 }
 
+const heading: NodeHandler = (props) => {
+    const Tag = `h${props.node.attrs?.level}` as keyof JSX.IntrinsicElements;
+    return <Tag>{props.children}</Tag>;
+}
+
+const bulletList: NodeHandler = (props) => {
+    return <ul>{props.children}</ul>;
+}
+
+const listItem: NodeHandler = (props) => {
+    return <li>{props.children}</li>;
+}
+
+const link: NodeHandler = (props) => {
+    return <a href={props.node.attrs?.href}>{props.children}</a>;
+}
+
 const handlers: NodeHandlers = {
     doc: doc,
     text: text,
     paragraph: paragraph,
+    heading: heading,
+    bulletList: bulletList,
+    listItem: listItem,
+    link: link,
 }
 
 const RenderJson = ({data}: {data: any}) => {
-  return (
+    const jsonData = typeof data === 'string' ? JSON.parse(data) : data;
+    return (
     <div className="px-2 pt-2 prose">
-        <TipTapRender handlers={handlers} node={data}/>
+        <TipTapRender handlers={handlers} node={jsonData}/>
     </div>
-  );
+    );
 }
 
 export default RenderJson

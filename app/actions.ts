@@ -103,8 +103,8 @@ export async function updateSubDescription(prevState: any, formData: FormData) {
 }
 
 export async function createPost(
-    { jsonContent }: {jsonContent: JSONContent | null},
-        formData: FormData
+    { jsonString }: { jsonString: string | null },
+    formData: FormData
     ){
     const { getUser } = getKindeServerSession();
     const user = await getUser();
@@ -122,7 +122,7 @@ export async function createPost(
             imageString: imageUrl ?? undefined,
             subName,
             userId: user.id,
-            textContent: jsonContent ?? undefined,
+            textContent: jsonString ?? undefined,
         }
     });
 
