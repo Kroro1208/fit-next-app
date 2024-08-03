@@ -8,7 +8,6 @@ import { handleVote } from '../actions'
 import UpVoteButton from './UpVoteButton'
 import DownVoteButton from './DownVoteButton'
 import RenderJson from './RenderJson'
-
 interface Props {
     title: string;
     jsonContent: any;

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import prisma from "@/app/lib/db"
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
@@ -11,6 +12,8 @@ import UpVoteButton from "@/app/components/UpVoteButton";
 import DownVoteButton from "@/app/components/DownVoteButton";
 import RenderJson from "@/app/components/RenderJson";
 import CopyLink from "@/app/components/CopyLink";
+import CommentForm from "@/app/components/CommentForm";
+import user from "../../../public/user.png";
 
 async function getData(id: string) {
     const data = await prisma.post.findUnique({
@@ -27,6 +30,21 @@ async function getData(id: string) {
             Vote: {
                 select: {
                     voteType: true
+                }
+            },
+            Comment: {
+                orderBy: {
+                    createdAt: 'desc'
+                },
+                select: {
+                    id: true,
+                    text: true,
+                    User: {
+                        select: {
+                            imageUrl: true,
+                            userName: true
+                        }
+                    }
                 }
             },
             Community: {
@@ -84,9 +102,29 @@ const PostPage = async ({ params }: { params: {id: string} }) => {
                         <div className="flex gap-x-5 items-center mt-3">
                             <div className="flex items-center gap-x-1">
                                 <MessageCircle className="h-5 w-5 text-muted-foreground"/>
-                                <p className="text-muted-foreground font-medium text-sm">15件のコメント</p>
+                                <p className="text-muted-foreground font-medium text-sm">{data.Comment.length}件のコメント</p>
                             </div>
                             <CopyLink id={params.id}/>
+                        </div>
+                        <CommentForm postId={params.id}/>
+                        <Separator className="my-5"/>
+                        <div className="flex flex-col gap-y-7">
+                            {data.Comment.map((item) => (
+                                <div key={item.id} className="flex flex-col">
+                                    <div className="flex items-center gap-x-3">
+                                        <img src={item.User?.imageUrl
+                                            ? item.User?.imageUrl
+                                            : 'https://w7.pngwing.com/pngs/81/570/png-transparent-pofile-logo-computer-icons-user-user-blue-heroes-logo-thumbnail.png' }
+                                            className="w-7 h-7 rounded-full"
+                                            alt="userAvata"
+                                        />
+                                        <h3 className="text-sm font-medium text-muted-foreground">
+                                            {item.User?.userName}
+                                        </h3>
+                                    </div>
+                                    <p className="ml-10 text-secondary-foreground text-sm tracking-wide">{item.text}</p>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </Card>
