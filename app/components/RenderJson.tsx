@@ -42,7 +42,7 @@ const handlers: NodeHandlers = {
 const RenderJson = ({data}: {data: any}) => {
     const jsonData = typeof data === 'string' ? JSON.parse(data) : data;
     return (
-    <div className="px-2 pt-2 prose">
+    <div className="px-2 pt-2 prose dark:prose-invert">
         <TipTapRender handlers={handlers} node={jsonData}/>
     </div>
     );

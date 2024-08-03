@@ -16,9 +16,10 @@ interface Props {
     userName: string;
     imageString: string | null;
     voteCount: number;
+    commentAmount: number;
 }
 
-const PostCard = ({id, title, imageString, jsonContent, subName, userName, voteCount }: Props) => {
+const PostCard = ({id, title, imageString, jsonContent, subName, userName, voteCount, commentAmount }: Props) => {
     return (
         <Card className='flex relative overflow-hidden'>
             <div className='flex flex-col items-center gap-y-2 bg-muted p-2'>
@@ -40,7 +41,7 @@ const PostCard = ({id, title, imageString, jsonContent, subName, userName, voteC
                         fit/{subName}
                     </Link>
                     <p className='text-xs text-muted-foreground'>
-                        {userName}: <span className='hover:text-primary'>{`${subName}`}</span>
+                        <span className='hover:text-primary'>{userName}</span>による投稿
                     </p>
                 </div>
                 <div className='flex items-center gap-x-2 p-2'>
@@ -67,7 +68,7 @@ const PostCard = ({id, title, imageString, jsonContent, subName, userName, voteC
                     <div className=' flex items-center gap-x-1'>
                         <MessageCircle className='h-4 w-4 text-muted-foreground'/>
                         <p className='text-xs text-muted-foreground font-medium'>
-                            コメント数 15
+                            コメント数 {commentAmount} 件
                         </p>
                     </div>
                     <CopyLink id={id}/>

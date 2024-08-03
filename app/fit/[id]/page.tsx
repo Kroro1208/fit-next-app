@@ -34,6 +34,11 @@ async function getData(name: string, searchParam: string) {
                     take: 10,
                     skip: searchParam ? (Number(searchParam) - 1) * 10 : 0,
                     select: {
+                        Comment: {
+                            select: {
+                                id: true
+                            }
+                        },
                         title: true,
                         imageString: true,
                         id: true,
@@ -77,6 +82,7 @@ const CommunityRoute = async ({
                         id={post.id} 
                         imageString={post.imageString}
                         subName={data.name}
+                        commentAmount={post.Comment.length}
                         title={post.title}
                         userName={post.User?.userName as string}
                         jsonContent={post.textContent}
