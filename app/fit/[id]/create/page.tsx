@@ -13,7 +13,6 @@ import { TipTapEditor } from '@/app/components/TipTabEditor'
 import SubmitButton from '@/app/components/SubmitButton'
 import { UploadDropzone } from '@/app/components/Uploadthing'
 import { createPost } from '@/app/actions';
-import { JSONContent } from '@tiptap/react';
 
 const rules = [
     {
