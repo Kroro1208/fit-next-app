@@ -50,7 +50,7 @@ model Post {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   Community Community? @relation(fields: [subName], references: [name])
-  subName String?
+  subName String? // コミュニティ名
   User User? @relation(fields: [userId], references: [id])
   userId String?
 }

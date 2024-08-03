@@ -45,7 +45,7 @@ const PostCard = ({id, title, imageString, jsonContent, subName, userName, voteC
                     </p>
                 </div>
                 <div className='flex items-center gap-x-2 p-2'>
-                        <Link href="/" className='font-semibold text-xs'>
+                        <Link href={`/post/${id}`} className='font-semibold text-xs'>
                             <h1 className='font-medium mt-1 text-lg'>{title}</h1>
                         </Link>
                 </div>
