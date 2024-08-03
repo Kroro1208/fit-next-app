@@ -12,7 +12,7 @@ const CreatePostCard = () => {
         <div>
             <Card className='px-4 mt-5 py-2 flex items-center gap-x-4'>
                 <Image src={postImage} alt='postImage' className='h-12 w-fit'/>
-                <Link href="/fit/create" className='w-full'>
+                <Link href="/fit/naoya/create" className='w-full'>
                     <Input placeholder='経験を投稿する'/>
                 </Link>
                 <div className='flex items-center gap-x-4'>

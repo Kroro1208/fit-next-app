@@ -5,12 +5,12 @@ import Link from "next/link";
 import user from "../../public/user.png";
 import { LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
 
-interface iAppProps {
+interface Props {
     userImage: string | null;
 }
 
-const UserDropDown = ({ userImage }: iAppProps) => {
-  return (
+const UserDropDown = ({ userImage }: Props) => {
+    return (
     <DropdownMenu>
         <DropdownMenuTrigger>
             <div className="rounded-full border px-2 py-2 lg:px-4 lg:py-2 flex items-center gap-x-3">
@@ -27,7 +27,13 @@ const UserDropDown = ({ userImage }: iAppProps) => {
                 <Link href="/fit/create">コミュニティをつくる</Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
-                <Link href="/create">投稿作成</Link>
+                <Link href="/fit/naoy/create">投稿作成</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+                <Link href="#">保存した記事</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+                <Link href="#">コミュニティ一覧</Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
                 <Link href="/settings">設定</Link>
@@ -38,7 +44,7 @@ const UserDropDown = ({ userImage }: iAppProps) => {
             </DropdownMenuItem>
         </DropdownMenuContent>
     </DropdownMenu>
-  )
+    )
 }
 
 export default UserDropDown
