@@ -25,6 +25,7 @@ model User {
   createdCommyunitys Community[]
   createdAt DateTime @default(now())
   Vote Vote[]
+  Comment Comment[]
   posts Post[]
 }
 
@@ -46,6 +47,7 @@ model Post {
   imageString String?
 
   Vote Vote[]
+  Comment Comment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -68,4 +70,14 @@ model Vote {
   userId String?
 
   voteType TypeOfVote
+}
+
+model Comment {
+  id String @id @default(uuid())
+  text String
+  createdAt DateTime @default(now())
+  User User? @relation(fields:[userId], references: [id])
+  userId String?
+  Post Post? @relation(fields: [postId], references: [id])
+  postId String?
 }
