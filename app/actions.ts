@@ -126,7 +126,7 @@ export async function createPost(
         }
     });
 
-    return redirect(`/`);
+    return redirect(`/post/${data.id}`);
 }
 
 export async function handleVote(formData: FormData) {

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server'
-import { AlarmClock } from 'lucide-react';
+import { AlarmClock, FileQuestion } from 'lucide-react';
 import { unstable_noStore } from 'next/cache';
 import Image from 'next/image'
 import Link from 'next/link'
@@ -76,23 +76,34 @@ const CommunityRoute = async ({
         <div className='max-w-[1000px] mx-auto flex gap-x-10 mt-10'>
             <div className='w-[65%] flex flex-col gap-y-5'>
                 <CreatePostCard />
-                {data?.posts.map((post)=>(
-                    <PostCard
-                        key={post.id}
-                        id={post.id} 
-                        imageString={post.imageString}
-                        subName={data.name}
-                        commentAmount={post.Comment.length}
-                        title={post.title}
-                        userName={post.User?.userName as string}
-                        jsonContent={post.textContent}
-                        voteCount={post.Vote.reduce((acc, vote) => {
-                            if(vote.voteType === "UP") return acc + 1;
-                            if(vote.voteType === "DOWN") return acc - 1;
-                            return acc;
-                            },0 )}
-                    />
-                ))}
+                {data?.posts.length === 0 ? (
+                    <div className='min-h-300px] flex flex-col items-center justify-center rounded-md border border-dashed p-8 text-center'>
+                        <div className='flex h-20 w-20 items-center justify-center rounded-full bg-primary/10'>
+                            <FileQuestion className='h-10 w-10 text-primary'/>
+                        </div>
+                        <h2 className='mt-6 text-xl font-semibold'>まだ投稿がありません</h2>
+                    </div>
+                ) : (
+                    <>
+                        {data?.posts.map((post)=>(
+                        <PostCard
+                            key={post.id}
+                            id={post.id} 
+                            imageString={post.imageString}
+                            subName={data.name}
+                            commentAmount={post.Comment.length}
+                            title={post.title}
+                            userName={post.User?.userName as string}
+                            jsonContent={post.textContent}
+                            voteCount={post.Vote.reduce((acc, vote) => {
+                                if(vote.voteType === "UP") return acc + 1;
+                                if(vote.voteType === "DOWN") return acc - 1;
+                                return acc;
+                                },0 )}
+                        />
+                    ))}
+                    </>
+                )}
                 <Pagination totalPages={Math.ceil(count / 10)} />
             </div>
             <div className='w-[35%]'>
