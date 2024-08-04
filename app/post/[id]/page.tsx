@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import prisma from "@/app/lib/db"
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -14,6 +14,9 @@ import RenderJson from "@/app/components/RenderJson";
 import CopyLink from "@/app/components/CopyLink";
 import CommentForm from "@/app/components/CommentForm";
 import user from "../../../public/user.png";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 
 async function getData(id: string) {
     const data = await prisma.post.findUnique({
@@ -70,64 +73,113 @@ async function getData(id: string) {
 
 const PostPage = async ({ params }: { params: {id: string} }) => {
     const data = await getData(params.id);
+
+    const upVoteCount = data.Vote.filter(vote => vote.voteType === "UP").length;
+    const downVoteCount = data.Vote.filter(vote => vote.voteType === "DOWN").length;
+    const totalVotes = upVoteCount + downVoteCount;
+    const trustScore = totalVotes > 0 ? (upVoteCount / totalVotes) * 100 : 50;
+
+    const getTrustScoreColor = (score: number) => {
+        if (score >= 70) return 'bg-green-500';
+        if (score >= 40) return 'bg-yellow-500';
+        return 'bg-red-500';
+    };
+
+    const getTrustScoreText = (score: number) => {
+        if (score >= 70) return '高信頼度';
+        if (score >= 40) return '中程度の信頼度';
+        return '低信頼度';
+    };
+
     return (
         <div className="max-w-[1200px] mx-auto flex gap-x-10 mt-4 mb-10">
             <div className="w-[70%] flex flex-col gap-y-5">
-                <Card className="flex p-2">
-                    <div className="flex flex-col items-center gap-y-2 p-2">
-                        <form action={handleVote}>
-                            <input type="hidden" name='voteDirection' value="UP"/>
-                            <input type="hidden" name='postId' value={data.id}/>
-                            <UpVoteButton />
-                        </form>
-                        {data.Vote.reduce((acc, vote) => {
-                            if(vote.voteType === 'UP') return acc + 1;
-                            if(vote.voteType === 'DOWN') return acc - 1;
-                            return acc;
-                            }, 0)}
-                        <form action={handleVote}>
-                            <input type="hidden" name='voteDirection' value="DOWN"/>
-                            <input type="hidden" name='postId' value={data.id}/>
-                            <DownVoteButton />
-                        </form>
-                    </div>
-                    <div className="p-2 w-full">
-                        <p className="text-sm text-muted-foreground">投稿者: {data.User?.userName}</p>
-                        <h1 className="font-medium mt-1 text-lg">{data.title}</h1>
-                        {data.imageString && (
-                            <Image src={data.imageString} alt="UserImage" width={500} height={400}
-                            className="w-full h-auto object-contain mt-2"/>
-                        )}
-                        {data.textContent && (<RenderJson data={data.textContent}/>)}
-                        <div className="flex gap-x-5 items-center mt-3">
-                            <div className="flex items-center gap-x-1">
-                                <MessageCircle className="h-5 w-5 text-muted-foreground"/>
-                                <p className="text-muted-foreground font-medium text-sm">{data.Comment.length}件のコメント</p>
-                            </div>
-                            <CopyLink id={params.id}/>
+                <Card className="w-full">
+                    <div className="flex">
+                        <div className="flex flex-col items-center justify-start p-2 bg-muted">
+                            <form action={handleVote}>
+                                <input type="hidden" name='voteDirection' value="UP"/>
+                                <input type="hidden" name='postId' value={data.id}/>
+                                <UpVoteButton />
+                            </form>
+                            <span className="text-sm font-bold my-1">{upVoteCount - downVoteCount}</span>
+                            <form action={handleVote}>
+                                <input type="hidden" name='voteDirection' value="DOWN"/>
+                                <input type="hidden" name='postId' value={data.id}/>
+                                <DownVoteButton />
+                            </form>
                         </div>
-                        <CommentForm postId={params.id}/>
-                        <Separator className="my-5"/>
-                        <div className="flex flex-col gap-y-7">
-                            {data.Comment.map((item) => (
-                                <div key={item.id} className="flex flex-col">
-                                    <div className="flex items-center gap-x-3">
-                                        <img src={item.User?.imageUrl
-                                            ? item.User?.imageUrl
-                                            : 'https://w7.pngwing.com/pngs/81/570/png-transparent-pofile-logo-computer-icons-user-user-blue-heroes-logo-thumbnail.png' }
-                                            className="w-7 h-7 rounded-full"
-                                            alt="userAvata"
-                                        />
-                                        <h3 className="text-sm font-medium text-muted-foreground">
-                                            {item.User?.userName}
-                                        </h3>
-                                    </div>
-                                    <p className="ml-10 text-secondary-foreground text-sm tracking-wide">{item.text}</p>
+                        <div className="flex-1">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <div className="flex items-center space-x-2">
+                                    <Link href={`/fit/${data.subName}`} className="font-semibold text-sm hover:underline">
+                                        fit/{data.subName}
+                                    </Link>
+                                    <span className="text-sm text-muted-foreground">•</span>
+                                    <p className="text-sm text-muted-foreground">
+                                        投稿者: <span className="font-medium hover:underline">{data.User?.userName}</span>
+                                    </p>
                                 </div>
-                            ))}
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div className="flex items-center space-x-2">
+                                                <Progress value={trustScore} className="w-20 h-2" indicatorClassName={getTrustScoreColor(trustScore)} />
+                                                <Badge variant='outline' className={`${getTrustScoreColor(trustScore)} text-white`}>
+                                                    {trustScore.toFixed(1)}%
+                                                </Badge>
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>信頼性スコア: {getTrustScoreText(trustScore)}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </CardHeader>
+                            <CardContent>
+                                <h1 className="text-xl font-semibold mb-2">{data.title}</h1>
+                                {data.imageString && (
+                                    <Image src={data.imageString} alt="投稿画像" width={500} height={400}
+                                    className="w-full h-auto object-contain mt-2"/>
+                                )}
+                                {data.textContent && (<RenderJson data={data.textContent}/>)}
+                            </CardContent>
+                            <CardFooter className="flex justify-between items-center">
+                                <div className="flex items-center space-x-4">
+                                    <Button variant="ghost" size="sm" className="flex items-center">
+                                        <MessageCircle className="mr-1 h-4 w-4" />
+                                        <span>{data.Comment.length}</span>
+                                    </Button>
+                                    <CopyLink id={params.id}/>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Badge variant="secondary">UP: {upVoteCount}</Badge>
+                                    <Badge variant="secondary">DOWN: {downVoteCount}</Badge>
+                                </div>
+                            </CardFooter>
                         </div>
                     </div>
                 </Card>
+                <CommentForm postId={params.id}/>
+                <Separator className="my-5"/>
+                <div className="flex flex-col gap-y-7">
+                    {data.Comment.map((item) => (
+                        <div key={item.id} className="flex flex-col">
+                            <div className="flex items-center gap-x-3">
+                                <img src={item.User?.imageUrl
+                                    ? item.User?.imageUrl
+                                    : 'https://w7.pngwing.com/pngs/81/570/png-transparent-pofile-logo-computer-icons-user-user-blue-heroes-logo-thumbnail.png' }
+                                    className="w-7 h-7 rounded-full"
+                                    alt="userAvatar"
+                                />
+                                <h3 className="text-sm font-medium text-muted-foreground">
+                                    {item.User?.userName}
+                                </h3>
+                            </div>
+                            <p className="ml-10 text-secondary-foreground text-sm tracking-wide">{item.text}</p>
+                        </div>
+                    ))}
+                </div>
             </div>
             <div className="w-[30%]">
             <Card>

@@ -120,7 +120,7 @@ const PostCard = ({
                     <CardFooter className='flex justify-between items-center'>
                         <div className='flex items-center space-x-4'>
                             <Button variant='ghost' size='sm' className='flex items-center'>
-                                <MessageCircle className='mr-1 h-4 w-4' />
+                                <MessageCircle className='mr-1 h-5 w-5' />
                                 <span>{commentAmount}</span>
                             </Button>
                             {shareLinkVisible && (

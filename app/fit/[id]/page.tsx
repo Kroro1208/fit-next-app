@@ -33,6 +33,9 @@ async function getData(name: string, searchParam: string) {
                 posts: {
                     take: 10,
                     skip: searchParam ? (Number(searchParam) - 1) * 10 : 0,
+                    orderBy: {
+                        createdAt: 'desc'
+                    },
                     select: {
                         Comment: {
                             select: {
@@ -85,23 +88,29 @@ const CommunityRoute = async ({
                     </div>
                 ) : (
                     <>
-                        {data?.posts.map((post)=>(
-                        <PostCard
-                            key={post.id}
-                            id={post.id} 
-                            imageString={post.imageString}
-                            subName={data.name}
-                            commentAmount={post.Comment.length}
-                            title={post.title}
-                            userName={post.User?.userName as string}
-                            jsonContent={post.textContent}
-                            voteCount={post.Vote.reduce((acc, vote) => {
-                                if(vote.voteType === "UP") return acc + 1;
-                                if(vote.voteType === "DOWN") return acc - 1;
-                                return acc;
-                                },0 )}
-                        />
-                    ))}
+                        {data?.posts.map((post) => {
+                            const upVoteCount = post.Vote.filter(vote => vote.voteType === "UP").length;
+                            const downVoteCount = post.Vote.filter(vote => vote.voteType === "DOWN").length;
+                            const totalVotes = upVoteCount + downVoteCount;
+                            const trustScore = totalVotes > 0 ? (upVoteCount / totalVotes) * 100 : 50; // デフォルトを50%とする
+                            
+                            return (
+                                <PostCard
+                                    key={post.id}
+                                    id={post.id} 
+                                    imageString={post.imageString}
+                                    subName={data.name}
+                                    commentAmount={post.Comment.length}
+                                    title={post.title}
+                                    userName={post.User?.userName as string}
+                                    jsonContent={post.textContent}
+                                    upVoteCount={upVoteCount}
+                                    downVoteCount={downVoteCount}
+                                    trustScore={trustScore}
+                                    shareLinkVisible={totalVotes >= 50} // 例: 50票以上で共有リンクを表示
+                                />
+                            );
+                        })}
                     </>
                 )}
                 <Pagination totalPages={Math.ceil(count / 10)} />
