@@ -185,10 +185,10 @@ const PostCard = ({
                                 <span>{commentAmount}</span>
                             </Button>
                             {shareLinkVisible && (
-                                <Button variant='outline' size='sm'>
+                                <div className='flex items-center'>
                                     <Share2 className='mr-1 h-4 w-4' />
                                     <CopyLink id={id} />
-                                </Button>
+                                </div>
                             )}
                         </div>
                         <div className='flex items-center space-x-2'>

@@ -237,7 +237,7 @@ export async function handleVote(formData: FormData) {
     }
 
     const totalVotes = upVoteCount + downVoteCount;
-    const trustScore = totalVotes > 0 ? (upVoteCount / totalVotes) * 100 : 0;
+    const trustScore = totalVotes > 0 ? (upVoteCount / totalVotes) * 100 : 50;
 
     await prisma.post.update({
         where: { id: postId },
