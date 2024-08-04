@@ -58,6 +58,7 @@ const CreatePostRoute = ({params}: {params: {id: string}}) => {
                 });
             } else if ('success' in result && result.success && 'postId' in result) {
                 toast({
+                    variant: 'success',
                     title: "成功",
                     description: "投稿が作成されました！",
                 });
