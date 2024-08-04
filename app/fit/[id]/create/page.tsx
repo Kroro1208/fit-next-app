@@ -13,6 +13,8 @@ import { TipTapEditor } from '@/app/components/TipTabEditor'
 import SubmitButton from '@/app/components/SubmitButton'
 import { UploadDropzone } from '@/app/components/Uploadthing'
 import { createPost } from '@/app/actions';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/components/ui/use-toast';
 
 const rules = [
     {
@@ -39,11 +41,43 @@ const rules = [
 
 const CreatePostRoute = ({params}: {params: {id: string}}) => {
     const [imageUrl, setImageUrl] = useState<null | string>(null);
-    // const [json, setJson] = useState<null | JSONContent>(null);
     const [jsonString, setJsonString] = useState<string | null>(null);
     const [title, setTitle] = useState<null | string>(null);
-    // const createPostFit = createPost.bind(null, {jsonContent: json});
-    const createPostFit = createPost.bind(null, { jsonString });
+    const router = useRouter();
+    const { toast } = useToast()
+
+    const handleSubmit = async (formData: FormData) => {
+        try {
+            const result = await createPost({ jsonString }, formData);
+            
+            if ('error' in result && typeof result.error === 'string') {
+                toast({
+                    variant: "destructive",
+                    title: "エラー",
+                    description: result.error,
+                });
+            } else if ('success' in result && result.success && 'postId' in result) {
+                toast({
+                    title: "成功",
+                    description: "投稿が作成されました！",
+                });
+                router.push(`/post/${result.postId}`);
+            } else {
+                toast({
+                    variant: "destructive",
+                    title: "エラー",
+                    description: "投稿の作成中に問題が発生しました。",
+                });
+            }
+        } catch (error) {
+            console.error('投稿作成中にエラーが発生しました:', error);
+            toast({
+                variant: "destructive",
+                title: "エラー",
+                description: "予期せぬエラーが発生しました。",
+            });
+        }
+    };
 
     return (
         <div className='max-w-[1000px] mx-auto flex gap-x-10 mt-4'>
@@ -64,10 +98,10 @@ const CreatePostRoute = ({params}: {params: {id: string}}) => {
                     </TabsList>
                     <TabsContent value='post'>
                         <Card>
-                            <form action={createPostFit}>
-                                <input type="hidden" name='imageUrl' value={imageUrl ?? undefined} />
+                            <form action={handleSubmit}>
+                                <input type="hidden" name='imageUrl' value={imageUrl ?? ''} />
                                 <input type="hidden" name='subName' value={params.id} />
-                                <input type="hidden" name="jsonString" value={jsonString ?? undefined} />
+                                <input type="hidden" name="jsonString" value={jsonString ?? ''} />
                                 <CardHeader>
                                     <Label>タイトル</Label>
                                     <Input required

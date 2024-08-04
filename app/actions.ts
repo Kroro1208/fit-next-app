@@ -104,29 +104,63 @@ export async function updateSubDescription(prevState: any, formData: FormData) {
 export async function createPost(
     { jsonString }: { jsonString: string | null },
     formData: FormData
-    ){
-    const { getUser } = getKindeServerSession();
-    const user = await getUser();
-    if(!user) {
-        return redirect('/api/auth/login');
-    }
-    
-    const title = formData.get('title') as string;
-    const imageUrl = formData.get('imageUrl') as string | null;
-    const subName = formData.get('subName') as string;
-
-    const data = await prisma.post.create({
-        data: {
-            title,
-            imageString: imageUrl ?? undefined,
-            subName,
-            userId: user.id,
-            textContent: jsonString ?? undefined,
+    ) {
+        const { getUser } = getKindeServerSession();
+        const user = await getUser();
+        if (!user) {
+            return { error: 'ログインが必要です。' };
         }
-    });
+        
+        const title = formData.get('title') as string;
+        const imageUrl = formData.get('imageUrl') as string | null;
+        const subName = formData.get('subName') as string;
 
-    return redirect(`/post/${data.id}`);
-}
+        // バリデーション
+        if (!title || title.trim() === '') {
+            return { error: 'タイトルは必須です。' };
+        }
+
+        if (!subName || subName.trim() === '') {
+            return { error: 'サブカテゴリは必須です。' };
+        }
+
+        // jsonStringの詳細なチェック
+        if (!jsonString) {
+            return { error: '投稿内容は必須です。' };
+        }
+
+        try {
+            const contentObj = JSON.parse(jsonString);
+            if (!contentObj.content || contentObj.content.length === 0) {
+                return { error: '投稿内容は必須です。' };
+            }
+
+            // TipTapの空の段落のみの場合をチェック
+            const hasNonEmptyContent = contentObj.content.some((node: any) => 
+                node.type !== 'paragraph' || 
+                (node.content && node.content.some((textNode: any) => textNode.text.trim() !== ''))
+            );
+
+            if (!hasNonEmptyContent) {
+                return { error: '投稿内容は必須です。' };
+            }
+
+            const data = await prisma.post.create({
+                data: {
+                    title: title.trim(),
+                    imageString: imageUrl ? imageUrl.trim() : undefined,
+                    subName: subName.trim(),
+                    userId: user.id,
+                    textContent: jsonString,
+                }
+            });
+
+            return { success: true, postId: data.id };
+        } catch (error) {
+            console.error('投稿の作成中にエラーが発生しました:', error);
+            return { error: '投稿の作成に失敗しました。後でもう一度お試しください。' };
+        }
+    }
 
 export async function handleVote(formData: FormData) {
     const { getUser } = getKindeServerSession();
