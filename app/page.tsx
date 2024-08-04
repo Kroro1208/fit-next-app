@@ -11,6 +11,7 @@ import PostCard from "./components/PostCard";
 import { Suspense } from "react";
 import SuspenseCard from "./components/SuspenseCard";
 import Pagination from "./components/Pagination";
+import UserInfoCard from "./components/UserInfo";
 
 async function getData(searchParam: string) {
   const [count, data] = await prisma.$transaction([
@@ -66,7 +67,7 @@ export default function Home({searchParams}: {searchParams: {page: string}}) {
               <Image src={HomeImage} alt="homeImage" className="w-20 h-20 -mt-6"/>
               <h1 className="font-medium pl-5">Home</h1>
             </div>
-            <p className="text-sm text-muted-foreground pt-2">あなたのコミュニティページです</p>
+            <p className="text-sm text-center text-muted-foreground pt-2">信頼性のある情報に投票しましょう</p>
             <Separator className="my-5"/>
             <div className="flex flex-col gap-y-3">
               <Button variant="secondary">
@@ -78,6 +79,7 @@ export default function Home({searchParams}: {searchParams: {page: string}}) {
             </div>
           </div>
         </Card>
+        <UserInfoCard />
       </div>
     </div>
   );
