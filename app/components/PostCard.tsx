@@ -57,7 +57,7 @@ const PostCard = ({
     return (
         <Card className='w-full'>
             <div className='flex'>
-                <div className='flex flex-col items-center justify-start p-2 bg-muted'>
+                <div className='flex flex-col items-center justify-center gap-3 p-2 bg-muted'>
                     <form action={handleVote}>
                         <input type="hidden" name='voteDirection' value="UP"/>
                         <input type="hidden" name='postId' value={id}/>

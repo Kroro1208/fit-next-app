@@ -35,7 +35,7 @@ const SubDesciptionForm = ({ description, subName }: Props) => {
     }, [state, toast]);
 
     return (
-        <form action={formAction} className='mt-3'>
+        <form action={formAction} className='mt-3 space-y-4'>
             <input type="hidden" name='subName' value={subName} />
             <Textarea
                 maxLength={100}
@@ -43,7 +43,9 @@ const SubDesciptionForm = ({ description, subName }: Props) => {
                 placeholder='コミュニティについての説明'
                 defaultValue={description ?? undefined}
             />
-            <SaveButton />
+            <div className="flex justify-center">
+                <SaveButton />
+            </div>
         </form>
     )
 }

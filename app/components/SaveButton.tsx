@@ -7,18 +7,19 @@ import { useFormStatus } from 'react-dom';
 const SaveButton = () => {
     const { pending } = useFormStatus();
     return (
-        <div>
-        {pending ? (
-            <Button className='mt-2 w-full disabled size-2'>
-                <Loader2 className='mr-2 h-3 w-3 animate-spin'/>
-                    保存中です
-            </Button>
-        ): (
-            <Button className='mt-2 w-full' type='submit' size="sm">
-                保存
-            </Button>
-        )}
-        </div>
+        <Button 
+            className='mt-1 px-6 w-full' 
+            type='submit' 
+            size="sm"
+            disabled={pending}
+        >
+            {pending ? (
+                <>
+                    <Loader2 className='mr-2 h-4 w-4 animate-spin'/>
+                    保存中
+                </>
+            ) : '保存'}
+        </Button>
     );
 }
 
