@@ -4,7 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AlarmClock, MessageCircle } from "lucide-react";
+import { AlarmClock, MessageCircle, Share2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { handleVote } from "@/app/actions";
@@ -13,7 +13,6 @@ import DownVoteButton from "@/app/components/DownVoteButton";
 import RenderJson from "@/app/components/RenderJson";
 import CopyLink from "@/app/components/CopyLink";
 import CommentForm from "@/app/components/CommentForm";
-import user from "../../../public/user.png";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -28,13 +27,11 @@ async function getData(id: string) {
             title: true,
             imageString: true,
             textContent: true,
+            shareLinkVisible: true,
             subName: true,
             id: true,
-            Vote: {
-                select: {
-                    voteType: true
-                }
-            },
+            upVoteCount: true,
+            downVoteCount: true,
             Comment: {
                 orderBy: {
                     createdAt: 'desc'
@@ -74,8 +71,8 @@ async function getData(id: string) {
 const PostPage = async ({ params }: { params: {id: string} }) => {
     const data = await getData(params.id);
 
-    const upVoteCount = data.Vote.filter(vote => vote.voteType === "UP").length;
-    const downVoteCount = data.Vote.filter(vote => vote.voteType === "DOWN").length;
+    const upVoteCount = data.upVoteCount;
+    const downVoteCount = data.downVoteCount;
     const totalVotes = upVoteCount + downVoteCount;
     const trustScore = totalVotes > 0 ? (upVoteCount / totalVotes) * 100 : 50;
 
@@ -96,7 +93,7 @@ const PostPage = async ({ params }: { params: {id: string} }) => {
             <div className="w-[70%] flex flex-col gap-y-5">
                 <Card className="w-full">
                     <div className="flex">
-                        <div className="flex flex-col items-center justify-start p-2 bg-muted">
+                        <div className="flex flex-col items-center justify-center p-2 bg-muted">
                             <form action={handleVote}>
                                 <input type="hidden" name='voteDirection' value="UP"/>
                                 <input type="hidden" name='postId' value={data.id}/>
@@ -150,7 +147,12 @@ const PostPage = async ({ params }: { params: {id: string} }) => {
                                         <MessageCircle className="mr-1 h-4 w-4" />
                                         <span>{data.Comment.length}</span>
                                     </Button>
-                                    <CopyLink id={params.id}/>
+                                    {data.shareLinkVisible && (
+                                        <div className='flex items-center'>
+                                            <Share2 className='mr-1 h-4 w-4' />
+                                            <CopyLink id={data.id} />
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <Badge variant="secondary">UP: {upVoteCount}</Badge>
@@ -216,7 +218,7 @@ const PostPage = async ({ params }: { params: {id: string} }) => {
                             </Link>
                         </Button>
                     </div>
-                </Card>
+            </Card>
             </div>
         </div>
     )
