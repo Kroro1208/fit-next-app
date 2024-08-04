@@ -54,6 +54,53 @@ const PostCard = ({
         return '低信頼度';
     };
 
+    const processContent = (content: any) => {
+        if (typeof content === 'string') {
+            content = JSON.parse(content);
+        }
+        if (content.content && content.content.length > 0) {
+            const firstItem = content.content[0];
+            if (firstItem.type === 'heading') {
+                // 見出しの場合、レベルに応じて文字数を制限
+                const headingLimits = {
+                    1: 10,  // H1は10文字
+                    2: 15,  // H2は15文字
+                    3: 20   // H3は20文字
+                };
+                const limit = headingLimits[firstItem.attrs.level as keyof typeof headingLimits] || 30; // その他の見出しは30文字
+    
+                const truncatedHeading = {
+                    ...firstItem,
+                    content: firstItem.content.map((textNode: any) => ({
+                        ...textNode,
+                        text: textNode.text.slice(0, limit) + (textNode.text.length > limit ? '...' : '')
+                    }))
+                };
+                return {
+                    type: 'heading',
+                    level: firstItem.attrs.level,
+                    content: {
+                        ...content,
+                        content: [truncatedHeading]
+                    }
+                };
+            } else {
+                // 通常テキストの場合は最大3つの段落を表示
+                const paragraphs = content.content.filter((item: any) => item.type === 'paragraph').slice(0, 3);
+                return {
+                    type: 'paragraph',
+                    content: {
+                        ...content,
+                        content: paragraphs
+                    }
+                };
+            }
+        }
+        return { type: 'other', content };
+    };
+
+    const processedContent = processContent(jsonContent);
+
     return (
         <Card className='w-full'>
             <div className='flex'>
@@ -101,8 +148,26 @@ const PostCard = ({
                         <Link href={`/post/${id}`} className='block'>
                             <h2 className='text-xl font-semibold mb-2 hover:underline'>{title}</h2>
                         </Link>
-                        <div className='max-h-[300px] overflow-hidden rounded-md'>
-                            {imageString ? (
+                        <div className='mb-4'>
+                            {processedContent.type === 'heading' ? (
+                                <div className='text-2xl font-bold mb-2'>
+                                    <RenderJson data={processedContent.content} />
+                                </div>
+                            ) : processedContent.type === 'paragraph' ? (
+                                <div className='max-h-24 overflow-hidden text-sm'>
+                                    <RenderJson data={processedContent.content} />
+                                </div>
+                            ) : (
+                                <div className='max-h-24 overflow-hidden text-sm'>
+                                    <RenderJson data={processedContent.content} />
+                                </div>
+                            )}
+                            <Link href={`/post/${id}`} className='text-sm text-blue-500 hover:underline'>
+                                続きを見る
+                            </Link>
+                        </div>
+                        {imageString && (
+                            <div className='max-h-[300px] overflow-hidden rounded-md'>
                                 <Image
                                     src={imageString}
                                     alt='投稿画像'
@@ -110,12 +175,8 @@ const PostCard = ({
                                     height={300}
                                     className='w-full h-full object-cover'
                                 />
-                            ) : jsonContent ? (
-                                <RenderJson data={jsonContent} />
-                            ) : (
-                                <p className='text-muted-foreground'>投稿内容がありません</p>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </CardContent>
                     <CardFooter className='flex justify-between items-center'>
                         <div className='flex items-center space-x-4'>
