@@ -3,7 +3,6 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
 import prisma from "./lib/db";
 import { Prisma, TypeOfVote } from "@prisma/client";
-import { JSONContent } from '@tiptap/react';
 import { revalidatePath } from "next/cache";
 
 export async function updateUsername(prevState: any, formData: FormData){
@@ -137,46 +136,100 @@ export async function handleVote(formData: FormData) {
         return redirect('/api/auth/login');
     }
 
-    // どの投稿に投票するか
     const postId = formData.get('postId') as string;
     const voteDirection = formData.get('voteDirection') as TypeOfVote;
 
-    const vote = await prisma.vote.findFirst({
+    const post = await prisma.post.findUnique({
+        where: { id: postId },
+        select: {
+            upVoteCount: true,
+            downVoteCount: true,
+            userId: true,
+            shareLinkVisible: true,
+        }
+    });
+
+    if (!post) {
+        throw new Error('投稿が存在しません');
+    }
+
+    let { upVoteCount, downVoteCount } = post;
+
+    const existingVote = await prisma.vote.findFirst({
         where: {
             postId: postId,
             userId: user.id,
         }
     });
 
-    if(vote) {
-        if(vote.voteType === voteDirection) {
-            await prisma.vote.delete({
-                where: {
-                    id: vote.id
-                }
-            });
-            return revalidatePath("/");
+    if (existingVote) {
+        // 既存の投票がある場合
+        if (existingVote.voteType === voteDirection) {
+            // 同じ方向の投票をしたので、投票を取り消す
+            await prisma.vote.delete({ where: { id: existingVote.id } });
+            if (voteDirection === 'UP') {
+                upVoteCount--;
+            } else {
+                downVoteCount--;
+            }
         } else {
+            // 異なる方向の投票なので、投票を更新する
             await prisma.vote.update({
-                where: {
-                    id: vote.id,
-                },
-                data: {
-                    voteType: voteDirection
-                }
+                where: { id: existingVote.id },
+                data: { voteType: voteDirection }
             });
-            return revalidatePath("/");
+            if (voteDirection === 'UP') {
+                upVoteCount++;
+                downVoteCount--;
+            } else {
+                upVoteCount--;
+                downVoteCount++;
+            }
+        }
+    } else {
+        // 新しい投票を作成する
+        await prisma.vote.create({
+            data: {
+                voteType: voteDirection,
+                userId: user.id,
+                postId: postId
+            }
+        });
+        if (voteDirection === 'UP') {
+            upVoteCount++;
+        } else {
+            downVoteCount++;
         }
     }
 
-    await prisma.vote.create({
+    const totalVotes = upVoteCount + downVoteCount;
+    const trustScore = totalVotes > 0 ? (upVoteCount / totalVotes) * 100 : 0;
+
+    await prisma.post.update({
+        where: { id: postId },
         data: {
-            voteType: voteDirection,
-            userId: user.id,
-            postId: postId
+            upVoteCount,
+            downVoteCount,
+            trustScore
         }
     });
-    return revalidatePath("/");
+
+    if (upVoteCount >= 50 && !post.shareLinkVisible) {
+        await prisma.post.update({
+            where: { id: postId },
+            data: { shareLinkVisible: true }
+        });
+
+        await prisma.notification.create({
+            data: {
+                userId: post.userId as string,
+                postId: postId,
+                message: 'あなたの投稿が50件以上のUP投票を獲得し、共有リンクが表示されるようになりました!'
+            }
+        });
+    }
+
+    revalidatePath("/");
 }
 
 export async function createComment(formData: FormData){

@@ -17,13 +17,17 @@ async function getData(searchParam: string) {
     prisma.post.count(),
     prisma.post.findMany({
       take: 10,
-      skip: searchParam ? (Number(searchParam) -1) * 10 : 0,
+      skip: searchParam ? (Number(searchParam) - 1) * 10 : 0,
       select: {
+        id: true,
         title: true,
         createdAt: true,
         textContent: true,
-        id: true,
         imageString: true,
+        upVoteCount: true,
+        downVoteCount: true,
+        trustScore: true,
+        shareLinkVisible: true,
         Comment: {
           select: {
             id: true,
@@ -35,13 +39,6 @@ async function getData(searchParam: string) {
           }
         },
         subName: true,
-        Vote: {
-          select: {
-            userId: true,
-            voteType: true,
-            postId: true,
-          },
-        },
       },
       orderBy: {
         createdAt: "desc",
@@ -49,7 +46,7 @@ async function getData(searchParam: string) {
     })
   ]);
 
-  return {data, count};
+  return { data, count };
 }
 
 export default function Home({searchParams}: {searchParams: {page: string}}) {
@@ -86,29 +83,29 @@ export default function Home({searchParams}: {searchParams: {page: string}}) {
   );
 }
 
-async function ShowItems({searchParams}: {searchParams: {page: string}}) {
-  const {count, data} = await getData(searchParams.page);
+async function ShowItems({ searchParams }: { searchParams: { page: string } }) {
+  const { count, data } = await getData(searchParams.page);
   return (
     <>
       {data.map((post) => (
-          <PostCard
-            key={post.id}
-            id={post.id}
-            imageString={post.imageString}
-            jsonContent={post.textContent}
-            subName={post.subName as string}
-            title={post.title}
-            userName={post.User?.userName as string}
-            commentAmount={post.Comment.length}
-            voteCount={post.Vote.reduce((acc, vote) => {
-              if(vote.voteType === 'UP') return acc + 1;
-              if(vote.voteType === 'DOWN') return acc - 1;
-              return acc;
-            }, 0)}
-          />
-        ))}
-        <Pagination totalPages={Math.ceil(count / 1)}/>
+        <PostCard
+          key={post.id}
+          id={post.id}
+          imageString={post.imageString}
+          jsonContent={post.textContent}
+          subName={post.subName as string}
+          title={post.title}
+          userName={post.User?.userName as string}
+          commentAmount={post.Comment.length}
+          upVoteCount={post.upVoteCount}
+          downVoteCount={post.downVoteCount}
+          trustScore={post.trustScore}
+          shareLinkVisible={post.shareLinkVisible}
+        />
+      ))}
+      <Pagination totalPages={Math.ceil(count / 10)} />
     </>
   );
 }
+
 
