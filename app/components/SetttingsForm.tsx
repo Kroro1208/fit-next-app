@@ -24,7 +24,7 @@ const SetttingsForm = ({ username }: { username: string | null | undefined }) =>
       toast({
         title: 'Successfull',
         description: state.message,
-        variant: 'default'
+        variant: 'success'
       });
     } else if(state?.status === 'error') {
       toast({

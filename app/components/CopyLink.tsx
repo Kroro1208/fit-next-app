@@ -7,6 +7,7 @@ const CopyLink = ({ id }: { id: string }) => {
     async function copytoClipboard(){
         await navigator.clipboard.writeText(`${location.origin}/post/${id}`);
         toast({
+            variant: 'success',
             title: 'Success',
             description: 'クリップボードにコピーされました'
         });

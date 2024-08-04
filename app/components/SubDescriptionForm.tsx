@@ -22,6 +22,7 @@ const SubDesciptionForm = ({ description, subName }: Props) => {
     useEffect(() => {
         if(state.status ==='green'){
             toast({
+                variant: 'success',
                 title: 'Success',
                 description: state.message,
             });
