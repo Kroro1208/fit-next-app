@@ -286,3 +286,43 @@ export async function createComment(formData: FormData){
 
     return data;
 }
+
+export interface Notification {
+    id: string;
+    message: string;
+    createdAt: Date;
+}
+
+export async function getNotifications(): Promise<Notification[]> {
+    const { getUser } = getKindeServerSession();
+    const user = await getUser();
+    if(!user || !user.id) return [];
+
+    const notifications = await prisma.notification.findMany({
+        where: {
+            userId: user.id,
+            read: false
+        },
+        orderBy: {
+            createdAt: 'desc'
+        },
+        select: {
+            id: true,
+            message: true,
+            createdAt: true,
+        }
+    });
+
+    //既読マークつける
+    await prisma.notification.updateMany({
+        where: {
+            userId: user.id,
+            read: false
+        },
+        data: {
+            read: true
+        }
+    });
+
+    return notifications;
+}
