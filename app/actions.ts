@@ -326,3 +326,81 @@ export async function getNotifications(): Promise<Notification[]> {
 
     return notifications;
 }
+
+export async function getUserInfo(userId: string) {
+    const { getUser } = getKindeServerSession();
+    const currentUser = await getUser();
+
+    if (!currentUser || !currentUser.id) return null;
+
+    const dbUser = await prisma.user.findUnique({
+        where: {
+            id: userId,
+        },
+        select: {
+            userName: true,
+            imageUrl: true,
+            _count: {
+                select: {
+                    posts: true,
+                    Comment: true,
+                    followers: true,
+                    following: true
+                }
+            }
+        }
+    });
+    if (!dbUser) return null;
+
+    return {
+        userName: dbUser.userName || '未設定',
+        imageUrl: dbUser.imageUrl,
+        postCount: dbUser._count.posts,
+        commentCount: dbUser._count.Comment,
+        followerCount: dbUser._count.followers,
+        followingCount: dbUser._count.following
+    };
+}
+
+export async function followUser(userId: string) {
+    const { getUser } = getKindeServerSession();
+    const currentUser = await getUser();
+    
+    if (!currentUser || !currentUser.id) {
+        throw new Error('認証が必要です');
+    }
+
+    if (currentUser.id === userId) {
+        throw new Error('自分自身をフォローすることはできません');
+    }
+
+    const existingFollow = await prisma.follow.findUnique({
+        where: {
+            followerId_followingId: {
+                followerId: currentUser.id,
+                followingId: userId
+            }
+        }
+    });
+
+    if (existingFollow) {
+        await prisma.follow.delete({
+            where: {
+                id: existingFollow.id
+            }
+        });
+        return {
+            action: 'unfollow'
+        };
+    } else {
+        await prisma.follow.create({
+            data: {
+                followerId: currentUser.id,
+                followingId: userId
+            }
+        });
+        return {
+            action: 'follow'
+        };
+    }
+}

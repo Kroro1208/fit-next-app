@@ -12,6 +12,7 @@ import { Suspense } from "react";
 import SuspenseCard from "./components/SuspenseCard";
 import Pagination from "./components/Pagination";
 import UserInfoCard from "./components/UserInfo";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 
 async function getData(searchParam: string) {
   const [count, data] = await prisma.$transaction([
@@ -36,6 +37,7 @@ async function getData(searchParam: string) {
         },
         User: {
           select: {
+            id: true,
             userName: true,
           }
         },
@@ -50,7 +52,9 @@ async function getData(searchParam: string) {
   return { data, count };
 }
 
-export default function Home({searchParams}: {searchParams: {page: string}}) {
+export default async function Home({searchParams}: {searchParams: {page: string}}) {
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
   return (
     <div className="max-w-[1000px] mx-auto flex gap-x-10 mt-4 mb-10">
       <div className="w-[65%] flex flex-col gap-y-5">
@@ -79,7 +83,7 @@ export default function Home({searchParams}: {searchParams: {page: string}}) {
             </div>
           </div>
         </Card>
-        <UserInfoCard />
+        {user && <UserInfoCard userId={user.id} />}
       </div>
     </div>
   );
