@@ -338,6 +338,7 @@ export async function getUserInfo(userId: string) {
             id: userId,
         },
         select: {
+            id: true,
             userName: true,
             imageUrl: true,
             _count: {
@@ -353,6 +354,7 @@ export async function getUserInfo(userId: string) {
     if (!dbUser) return null;
 
     return {
+        id: dbUser.id,
         userName: dbUser.userName || '未設定',
         imageUrl: dbUser.imageUrl,
         postCount: dbUser._count.posts,
@@ -368,10 +370,6 @@ export async function followUser(userId: string) {
     
     if (!currentUser || !currentUser.id) {
         throw new Error('認証が必要です');
-    }
-
-    if (currentUser.id === userId) {
-        throw new Error('自分自身をフォローすることはできません');
     }
 
     const existingFollow = await prisma.follow.findUnique({

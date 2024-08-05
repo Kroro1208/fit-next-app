@@ -2,7 +2,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { UserCircle, FileText, Bookmark, Settings, MessageSquare, Users } from "lucide-react";
+import { UserCircle, FileText, Bookmark, Settings, MessageSquare, Users, X } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -11,13 +11,25 @@ import {
 } from "@/components/ui/tooltip";
 import { getUserInfo, followUser } from "../actions";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from 'next/navigation';
+import { Toast, ToastProvider, ToastViewport } from "@radix-ui/react-toast";
+
+interface UserInfo {
+  id: string;
+  userName: string;
+  imageUrl: string | null;
+  postCount: number;
+  commentCount: number;
+  followerCount: number;
+  followingCount: number;
+}
 
 export default function UserInfoCard({ userId }: { userId: string }) {
-    const [userInfo, setUserInfo] = useState<any>(null);
+    const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
     const [isFollowing, setIsFollowing] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    const router = useRouter()
+    const [toastMessage, setToastMessage] = useState("");
+    const router = useRouter();
 
     useEffect(() => {
         async function fetchData() {
@@ -30,6 +42,7 @@ export default function UserInfoCard({ userId }: { userId: string }) {
                 // setIsFollowing(followStatus.isFollowing);
             } catch (error) {
                 console.error("Failed to fetch user info:", error);
+                setToastMessage("ユーザー情報の取得に失敗しました");
             } finally {
                 setIsLoading(false);
             }
@@ -38,19 +51,32 @@ export default function UserInfoCard({ userId }: { userId: string }) {
     }, [userId]);
 
     const handleFollow = async () => {
+        if (!userInfo) return;
+
+        if (userInfo.id === userId) {
+            setToastMessage("自分自身はフォローできません");
+            return;
+        }
+
         try {
             const result = await followUser(userId);
             if (result.action === "follow") {
                 setIsFollowing(true);
-                setUserInfo((prev: { followerCount: number; }) => ({ ...prev, followerCount: prev.followerCount + 1 }));
+                setUserInfo(prev => prev ? {...prev, followerCount: prev.followerCount + 1} : null);
+                setToastMessage("フォローしました");
             } else {
                 setIsFollowing(false);
-                setUserInfo((prev: { followerCount: number; }) => ({ ...prev, followerCount: prev.followerCount - 1 }));
+                setUserInfo(prev => prev ? {...prev, followerCount: prev.followerCount - 1} : null);
+                setToastMessage("フォロー解除しました");
             }
         } catch (error) {
             console.error("Failed to follow/unfollow:", error);
-            // ユーザーにエラーを通知するロジックを追加
+            setToastMessage("フォロー/フォロー解除に失敗しました");
         }
+    };
+
+    const handleNavigation = (path: string) => {
+        router.push(path);
     };
 
     if (isLoading) {
@@ -62,107 +88,121 @@ export default function UserInfoCard({ userId }: { userId: string }) {
     }
 
     return (
-        <Card className="mt-5 overflow-hidden">
-            <div className="relative h-32 bg-gradient-to-r from-blue-500 to-purple-500">
-                <div className="absolute -bottom-16 left-4">
-                    <Image
-                        src={userInfo.imageUrl || "/placeholder-avatar.png"}
-                        alt="User Avatar"
-                        width={96}
-                        height={96}
-                        className="rounded-full border-4 border-white"
-                    />
-                </div>
-            </div>
-            <CardContent className="pt-20">
-                <div className="flex justify-between items-start">
-                    <div className="flex items-center">
-                        <UserCircle className="w-6 h-6 mr-2 text-blue-500" />
-                        <div>
-                            <h2 className="font-bold text-2xl">{userInfo.userName}</h2>
-                            <p className="text-sm text-muted-foreground">@{userInfo.userName?.toLowerCase().replace(/\s+/g, '')}</p>
-                        </div>
+        <ToastProvider swipeDirection="right">
+            <Card className="mt-5 overflow-hidden">
+                <div className="relative h-32 bg-gradient-to-r from-blue-500 to-purple-500">
+                    <div className="absolute -bottom-16 left-4">
+                        <Image
+                            src={userInfo.imageUrl || "/placeholder-avatar.png"}
+                            alt="User Avatar"
+                            width={96}
+                            height={96}
+                            className="rounded-full border-4 border-white"
+                        />
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => router.push('/settings')}>
-                        <Settings className="w-4 h-4 mr-2" />
-                        編集
-                    </Button>
                 </div>
-                
-                <div className="flex justify-between mt-6 mb-6">
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div className="text-center cursor-pointer" onClick={() => router.push(`/user/${userId}/posts`)}>
-                                    <p className="font-bold text-xl">{userInfo.postCount}</p>
-                                    <p className="text-xs text-muted-foreground">投稿</p>
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>投稿した記事を見る</p>
-                            </TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div className="text-center cursor-pointer" onClick={() => router.push(`/user/${userId}/comments`)}>
-                                    <p className="font-bold text-xl">{userInfo.commentCount}</p>
-                                    <p className="text-xs text-muted-foreground">コメント</p>
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>コメントを見る</p>
-                            </TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div className="text-center cursor-pointer" onClick={() => router.push(`/user/${userId}/followers`)}>
-                                    <p className="font-bold text-xl">{userInfo.followerCount}</p>
-                                    <p className="text-xs text-muted-foreground">フォロワー</p>
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>フォロワーを見る</p>
-                            </TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div className="text-center cursor-pointer" onClick={() => router.push(`/user/${userId}/following`)}>
-                                    <p className="font-bold text-xl">{userInfo.followingCount}</p>
-                                    <p className="text-xs text-muted-foreground">フォロー中</p>
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>フォロー中のユーザーを見る</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                </div>
-                
-                <div className="flex flex-col gap-y-3">
-                    <Button variant="outline" className="justify-start" onClick={() => router.push(`/user/${userId}/posts`)}>
-                        <FileText className="w-4 h-4 mr-2" />
-                        投稿した記事
-                    </Button>
-                    <Button variant="outline" className="justify-start" onClick={() => router.push(`/user/${userId}/comments`)}>
-                        <MessageSquare className="w-4 h-4 mr-2" />
-                        コメント
-                    </Button>
-                    <Button variant="outline" className="justify-start" onClick={() => router.push(`/user/${userId}/saved`)}>
-                        <Bookmark className="w-4 h-4 mr-2" />
-                        保存した記事
-                    </Button>
-                    <Button variant="outline" className="justify-start" onClick={() => router.push(`/user/${userId}/connections`)}>
-                        <Users className="w-4 h-4 mr-2" />
-                        フォロー/フォロワー
-                    </Button>
-                    <Button 
-                        variant={isFollowing ? "outline" : "default"} 
-                        onClick={handleFollow}
+                <CardContent className="pt-20">
+                    <div className="flex justify-between items-start">
+                        <div className="flex items-center">
+                            <UserCircle className="w-6 h-6 mr-2 text-blue-500" />
+                            <div>
+                                <h2 className="font-bold text-2xl">{userInfo.userName}</h2>
+                                <p className="text-sm text-muted-foreground">@{userInfo.userName.toLowerCase().replace(/\s+/g, '')}</p>
+                            </div>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => handleNavigation('/settings')}>
+                            <Settings className="w-4 h-4 mr-2" />
+                            編集
+                        </Button>
+                    </div>
+                    
+                    <div className="flex justify-between mt-6 mb-6">
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div className="text-center cursor-pointer" onClick={() => handleNavigation(`/user/${userId}/posts`)}>
+                                        <p className="font-bold text-xl">{userInfo.postCount}</p>
+                                        <p className="text-xs text-muted-foreground">投稿</p>
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>投稿した記事を見る</p>
+                                </TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div className="text-center cursor-pointer" onClick={() => handleNavigation(`/user/${userId}/comments`)}>
+                                        <p className="font-bold text-xl">{userInfo.commentCount}</p>
+                                        <p className="text-xs text-muted-foreground">コメント</p>
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>コメントを見る</p>
+                                </TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div className="text-center cursor-pointer" onClick={() => handleNavigation(`/user/${userId}/followers`)}>
+                                        <p className="font-bold text-xl">{userInfo.followerCount}</p>
+                                        <p className="text-xs text-muted-foreground">フォロワー</p>
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>フォロワーを見る</p>
+                                </TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div className="text-center cursor-pointer" onClick={() => handleNavigation(`/user/${userId}/following`)}>
+                                        <p className="font-bold text-xl">{userInfo.followingCount}</p>
+                                        <p className="text-xs text-muted-foreground">フォロー中</p>
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>フォロー中のユーザーを見る</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
+                    
+                    <div className="flex flex-col gap-y-3">
+                        <Button variant="outline" className="justify-start" onClick={() => handleNavigation(`/user/${userId}/posts`)}>
+                            <FileText className="w-4 h-4 mr-2" />
+                            投稿した記事
+                        </Button>
+                        <Button variant="outline" className="justify-start" onClick={() => handleNavigation(`/user/${userId}/comments`)}>
+                            <MessageSquare className="w-4 h-4 mr-2" />
+                            コメント
+                        </Button>
+                        <Button variant="outline" className="justify-start" onClick={() => handleNavigation(`/user/${userId}/saved`)}>
+                            <Bookmark className="w-4 h-4 mr-2" />
+                            保存した記事
+                        </Button>
+                        <Button variant="outline" className="justify-start" onClick={() => handleNavigation(`/user/${userId}/connections`)}>
+                            <Users className="w-4 h-4 mr-2" />
+                            フォロー/フォロワー
+                        </Button>
+                        <Button 
+                            variant={isFollowing ? "outline" : "default"} 
+                            onClick={handleFollow}
+                        >
+                            {isFollowing ? "フォロー解除" : "フォローする"}
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+            <Toast open={!!toastMessage} onOpenChange={() => setToastMessage("")}>
+                <div className="bg-yellow-200 border border-gray-200 rounded-md shadow-lg p-4 flex justify-between items-center">
+                    <span>{toastMessage}</span>
+                    <button 
+                        onClick={() => setToastMessage("")}
+                        className="text-gray-500 hover:text-gray-700"
                     >
-                        {isFollowing ? "フォロー解除" : "フォローする"}
-                    </Button>
+                        <X size={16} />
+                    </button>
                 </div>
-            </CardContent>
-        </Card>
+            </Toast>
+            <ToastViewport className="fixed bottom-0 right-0 flex flex-col p-6 gap-2 w-96 max-w-[100vw] m-0 list-none z-50 outline-none" />
+        </ToastProvider>
     );
 }
