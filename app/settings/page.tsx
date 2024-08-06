@@ -9,7 +9,9 @@ async function getData(userId: string) {
         where: {
             id: userId
         }, select: {
-            userName: true
+          id: true,
+          userName: true,
+          imageUrl: true
         }
     });
 
@@ -24,9 +26,13 @@ const SettingsPage = async () => {
     }
 
     const data = await getData(user.id);
+    const userId = data?.id ?? null;
+    const userName = data?.userName ?? null;
+    const imageUrl = data?.imageUrl ?? null;
+
   return (
     <div className='max-w-[1000px] mx-auto flex flex-col mt-4'>
-      <SetttingsForm username={data?.userName}/>
+      <SetttingsForm username={userName} imageUrl={imageUrl} userId={userId}/>
     </div>
   )
 }

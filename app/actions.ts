@@ -4,40 +4,88 @@ import { redirect } from "next/navigation";
 import prisma from "./lib/db";
 import { Prisma, TypeOfVote } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { uploadImage } from "./lib/supabase";
+import { syncUserAuth } from "./lib/auth";
 
-export async function updateUsername(prevState: any, formData: FormData){
-    const { getUser } = getKindeServerSession();
-    const user = await getUser();
-    if(!user) {
-        redirect('/api/auth/login');
-    }
-
-    const username = formData.get('username') as string;
-
+export async function updateUserProfile(prevState: any, formData: FormData) {
+    console.log("updateUserProfile function called");
+    
     try {
-        await prisma.user.update({
+        const user = await syncUserAuth();
+        console.log("Synced user:", user);
+
+        if (!user) {
+            console.log("No user found after sync");
+            return { message: 'ユーザーが見つかりません', status: 'error' };
+        }
+
+        const username = formData.get('username') as string;
+        const imageFile = formData.get('image') as File | null;
+        console.log("Username:", username);
+        console.log("Image file:", imageFile);
+
+        console.log("Fetching current user info");
+        const currentUser = await prisma.user.findUnique({
+            where: { id: user.id },
+            select: { imageUrl: true }
+        });
+        console.log("Current user info:", currentUser);
+
+        let imageUrl = currentUser?.imageUrl || null;
+
+        if (imageFile && imageFile instanceof File && imageFile.size > 0) {
+            if (!isValidImageFile(imageFile)) {
+                return {
+                    message: '無効なファイル形式です。JPG、PNG、GIFのみ許可されています。',
+                    status: 'error',
+                };
+            }
+            console.log("Uploading image");
+            imageUrl = await uploadImage(imageFile, user.id);
+            console.log("Image uploaded, new URL:", imageUrl);
+        }
+
+        console.log("Updating user profile");
+        const updatedUser = await prisma.user.update({
             where: {
                 id: user.id,
             },
             data: {
-                userName: username
-            }
+                userName: username,
+                imageUrl: imageUrl,
+            },
         });
+
+        console.log("User profile updated:", updatedUser);
+        revalidatePath('/settings');
         return {
-            message: 'ユーザー名が更新されました',
+            message: 'プロフィールが更新されました',
             status: 'success',
         };
     } catch (error) {
-        if(error instanceof Prisma.PrismaClientKnownRequestError){
-            if(error.code === "P2002") {
+        console.error('Error updating user profile:', error);
+        if (error instanceof Error) {
+            console.error('Error message:', error.message);
+            console.error('Error stack:', error.stack);
+        }
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            if (error.code === 'P2002') {
                 return {
-                    mmessage: 'このユーザー名はすでに使用されています',
-                    status: 'false'
-                }
+                    message: 'このユーザー名はすでに使用されています',
+                    status: 'error',
+                };
             }
         }
-        throw error;
+        return {
+            message: `エラーが発生しました: ${error instanceof Error ? error.message : '不明なエラー'}`,
+            status: 'error',
+        };
     }
+}
+
+function isValidImageFile(file: File) {
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    return validTypes.includes(file.type);
 }
 
 export const createCommunity = async (prevState: any, formData: FormData) => {
