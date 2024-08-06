@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/tooltip";
 import { getUserInfo, followUser } from "../actions";
 import { useState, useEffect } from "react";
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Toast, ToastProvider, ToastViewport } from "@radix-ui/react-toast";
 
 interface UserInfo {
@@ -29,7 +29,6 @@ export default function UserInfoCard({ userId }: { userId: string }) {
     const [isFollowing, setIsFollowing] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [toastMessage, setToastMessage] = useState("");
-    const router = useRouter();
 
     useEffect(() => {
         async function fetchData() {
@@ -75,10 +74,6 @@ export default function UserInfoCard({ userId }: { userId: string }) {
         }
     };
 
-    const handleNavigation = (path: string) => {
-        router.push(path);
-    };
-
     if (isLoading) {
         return <div>Loading...</div>;
     }
@@ -105,25 +100,31 @@ export default function UserInfoCard({ userId }: { userId: string }) {
                     <div className="flex justify-between items-start">
                         <div className="flex items-center">
                             <UserCircle className="w-6 h-6 mr-2 text-blue-500" />
-                            <div>
-                                <h2 className="font-bold text-2xl">{userInfo.userName}</h2>
-                                <p className="text-sm text-muted-foreground">@{userInfo.userName.toLowerCase().replace(/\s+/g, '')}</p>
-                            </div>
+                            <Link href={`/user/${userId}/posts`}>
+                                <div className="cursor-pointer">
+                                    <h2 className="font-bold text-2xl">{userInfo.userName}</h2>
+                                    <p className="text-sm text-muted-foreground">@{userInfo.userName.toLowerCase().replace(/\s+/g, '')}</p>
+                                </div>
+                            </Link>
                         </div>
-                        <Button variant="outline" size="sm" onClick={() => handleNavigation('/settings')}>
-                            <Settings className="w-4 h-4 mr-2" />
-                            編集
-                        </Button>
+                        <Link href='/settings' passHref legacyBehavior>
+                            <Button variant="outline" size="sm">
+                                <Settings className="w-4 h-4 mr-2" />
+                                編集
+                            </Button>
+                        </Link>
                     </div>
                     
                     <div className="flex justify-between mt-6 mb-6">
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <div className="text-center cursor-pointer" onClick={() => handleNavigation(`/user/${userId}/posts`)}>
-                                        <p className="font-bold text-xl">{userInfo.postCount}</p>
-                                        <p className="text-xs text-muted-foreground">投稿</p>
-                                    </div>
+                                    <Link href={`/user/${userId}/posts`}>
+                                        <div className="text-center cursor-pointer">
+                                            <p className="font-bold text-xl">{userInfo.postCount}</p>
+                                            <p className="text-xs text-muted-foreground">投稿</p>
+                                        </div>
+                                    </Link>
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     <p>投稿した記事を見る</p>
@@ -131,10 +132,12 @@ export default function UserInfoCard({ userId }: { userId: string }) {
                             </Tooltip>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <div className="text-center cursor-pointer" onClick={() => handleNavigation(`/user/${userId}/comments`)}>
-                                        <p className="font-bold text-xl">{userInfo.commentCount}</p>
-                                        <p className="text-xs text-muted-foreground">コメント</p>
-                                    </div>
+                                    <Link href={`/user/${userId}/comments`}>
+                                        <div className="text-center cursor-pointer">
+                                            <p className="font-bold text-xl">{userInfo.commentCount}</p>
+                                            <p className="text-xs text-muted-foreground">コメント</p>
+                                        </div>
+                                    </Link>
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     <p>コメントを見る</p>
@@ -142,10 +145,12 @@ export default function UserInfoCard({ userId }: { userId: string }) {
                             </Tooltip>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <div className="text-center cursor-pointer" onClick={() => handleNavigation(`/user/${userId}/followers`)}>
-                                        <p className="font-bold text-xl">{userInfo.followerCount}</p>
-                                        <p className="text-xs text-muted-foreground">フォロワー</p>
-                                    </div>
+                                    <Link href={`/user/${userId}/connections/?tab=followers`}>
+                                        <div className="text-center cursor-pointer">
+                                            <p className="font-bold text-xl">{userInfo.followerCount}</p>
+                                            <p className="text-xs text-muted-foreground">フォロワー</p>
+                                        </div>
+                                    </Link>
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     <p>フォロワーを見る</p>
@@ -153,10 +158,12 @@ export default function UserInfoCard({ userId }: { userId: string }) {
                             </Tooltip>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <div className="text-center cursor-pointer" onClick={() => handleNavigation(`/user/${userId}/following`)}>
-                                        <p className="font-bold text-xl">{userInfo.followingCount}</p>
-                                        <p className="text-xs text-muted-foreground">フォロー中</p>
-                                    </div>
+                                    <Link href={`/user/${userId}/connections/?tab=following`}>
+                                        <div className="text-center cursor-pointer">
+                                            <p className="font-bold text-xl">{userInfo.followingCount}</p>
+                                            <p className="text-xs text-muted-foreground">フォロー中</p>
+                                        </div>
+                                    </Link>
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     <p>フォロー中のユーザーを見る</p>
@@ -166,22 +173,24 @@ export default function UserInfoCard({ userId }: { userId: string }) {
                     </div>
                     
                     <div className="flex flex-col gap-y-3">
-                        <Button variant="outline" className="justify-start" onClick={() => handleNavigation(`/user/${userId}/posts`)}>
-                            <FileText className="w-4 h-4 mr-2" />
-                            投稿した記事
-                        </Button>
-                        <Button variant="outline" className="justify-start" onClick={() => handleNavigation(`/user/${userId}/comments`)}>
-                            <MessageSquare className="w-4 h-4 mr-2" />
-                            コメント
-                        </Button>
-                        <Button variant="outline" className="justify-start" onClick={() => handleNavigation(`/user/${userId}/saved`)}>
-                            <Bookmark className="w-4 h-4 mr-2" />
-                            保存した記事
-                        </Button>
-                        <Button variant="outline" className="justify-start" onClick={() => handleNavigation(`/user/${userId}/connections`)}>
-                            <Users className="w-4 h-4 mr-2" />
-                            フォロー/フォロワー
-                        </Button>
+                        <Link href={`/user/${userId}/posts`} passHref legacyBehavior>
+                            <Button variant="outline" className="justify-start">
+                                <FileText className="w-4 h-4 mr-2" />
+                                投稿した記事
+                            </Button>
+                        </Link>
+                        <Link href={`/user/${userId}/comments`} passHref legacyBehavior>
+                            <Button variant="outline" className="justify-start">
+                                <MessageSquare className="w-4 h-4 mr-2" />
+                                コメント
+                            </Button>
+                        </Link>
+                        <Link href={`/user/${userId}/bookmarked`} passHref legacyBehavior>
+                            <Button variant="outline" className="justify-start">
+                                <Bookmark className="w-4 h-4 mr-2" />
+                                保存した記事
+                            </Button>
+                        </Link>
                         <Button 
                             variant={isFollowing ? "outline" : "default"} 
                             onClick={handleFollow}
