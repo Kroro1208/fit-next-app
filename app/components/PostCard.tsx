@@ -132,7 +132,7 @@ const PostCard = ({
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <div className='flex items-center space-x-2'>
-                                        <Progress value={trustScore} className='w-20 h-2' indicatorClassName={getTrustScoreColor(trustScore)} />
+                                        <Progress value={trustScore} className={`w-20 h-2 [&>div]:${getTrustScoreColor(trustScore)}`} />
                                         <Badge variant='outline' className={`${getTrustScoreColor(trustScore)} text-white`}>
                                             {trustScore.toFixed(1)}%
                                         </Badge>

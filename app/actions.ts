@@ -450,3 +450,32 @@ export async function followUser(userId: string) {
         };
     }
 }
+
+export async function getUserCommunities(userId: string) {
+    const communities = await prisma.community.findMany({
+        where: {
+            userId: userId
+        },
+        select: {
+            id: true,
+            name: true,
+            description: true,
+            createdAt: true,
+            posts: {
+                select: {
+                    id: true
+                }
+            }
+        },
+        orderBy: {
+            createdAt: 'desc',
+        }
+    });
+
+    return communities.map(community => ({
+        ...community,
+        postCount: community.posts.length,
+        createdAt: community.createdAt.toISOString(),
+        posts: undefined,
+    }));
+}

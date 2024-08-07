@@ -2,7 +2,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { UserCircle, FileText, Bookmark, Settings, MessageSquare, Users, X } from "lucide-react";
+import { UserCircle, FileText, Bookmark, Settings, MessageSquare, Users, X, User2Icon } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -177,6 +177,12 @@ export default function UserInfoCard({ userId }: { userId: string }) {
                             <Button variant="outline" className="justify-start">
                                 <FileText className="w-4 h-4 mr-2" />
                                 投稿した記事
+                            </Button>
+                        </Link>
+                        <Link href={`/user/${userId}/communities`} passHref legacyBehavior>
+                            <Button variant="outline" className="justify-start">
+                                <User2Icon className="w-4 h-4 mr-2" />
+                                コミュニティ一覧
                             </Button>
                         </Link>
                         <Link href={`/user/${userId}/comments`} passHref legacyBehavior>
