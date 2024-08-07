@@ -18,7 +18,7 @@ model User {
   userName           String?        @unique
   Comment            Comment[]
   createdCommyunitys Community[]
-  notification       Notification[]
+  notifications      Notification[]
   posts              Post[]
   Vote               Vote[]
   followers          Follow[]       @relation("Follower")
@@ -32,6 +32,7 @@ model Follow {
   following   User     @relation("Follower", fields: [followingId], references: [id])
   followingId String
   createdAt   DateTime @default(now())
+  notification Notification[]
 
   @@unique([followerId, followingId])
 }
@@ -60,22 +61,27 @@ model Post {
   shareLinkVisible Boolean        @default(false)
   trustScore       Float          @default(0)
   upVoteCount      Int            @default(0)
-  Comment          Comment[]
+  comments         Comment[]
   notification     Notification[]
   Community        Community?     @relation(fields: [subName], references: [name])
   User             User?          @relation(fields: [userId], references: [id])
-  Vote             Vote[]
+  votes            Vote[]
 }
 
 model Notification {
   id        String   @id @default(uuid())
   userId    String
-  postId    String
+  postId    String?
+  commentId String?
+  followId  String?
+  type      String //通知タイプ
   message   String
   createdAt DateTime @default(now())
   read      Boolean  @default(false)
-  post      Post     @relation(fields: [postId], references: [id])
+  post      Post?     @relation(fields: [postId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
+  comment   Comment? @relation(fields: [commentId], references: [id])
+  follow    Follow?  @relation(fields: [followId], references: [id])
 }
 
 model Vote {
@@ -95,6 +101,7 @@ model Comment {
   postId    String?
   Post      Post?    @relation(fields: [postId], references: [id])
   User      User?    @relation(fields: [userId], references: [id])
+  notification Notification[]
 }
 
 enum TypeOfVote {

@@ -32,7 +32,7 @@ async function getData(id: string) {
             id: true,
             upVoteCount: true,
             downVoteCount: true,
-            Comment: {
+            comments: {
                 orderBy: {
                     createdAt: 'desc'
                 },
@@ -58,7 +58,10 @@ async function getData(id: string) {
                 select: {
                     userName: true
                 }
-            }
+            },
+            updatedAt: true,
+            userId: true,
+            trustScore: true
         }
     });
     if(!data){
@@ -121,7 +124,7 @@ const PostPage = async ({ params }: { params: {id: string} }) => {
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                             <div className="flex items-center space-x-2">
-                                                <Progress value={trustScore} className="w-20 h-2" indicatorClassName={getTrustScoreColor(trustScore)} />
+                                                <Progress value={trustScore} className={`w-20 h-2 [&>div]:${getTrustScoreColor(trustScore)}`} />
                                                 <Badge variant='outline' className={`${getTrustScoreColor(trustScore)} text-white`}>
                                                     {trustScore.toFixed(1)}%
                                                 </Badge>
@@ -145,7 +148,7 @@ const PostPage = async ({ params }: { params: {id: string} }) => {
                                 <div className="flex items-center space-x-4">
                                     <Button variant="ghost" size="sm" className="flex items-center">
                                         <MessageCircle className="mr-1 h-4 w-4" />
-                                        <span>{data.Comment.length}</span>
+                                        <span>{data.comments.length}</span>
                                     </Button>
                                     {data.shareLinkVisible && (
                                         <div className='flex items-center'>
@@ -165,7 +168,7 @@ const PostPage = async ({ params }: { params: {id: string} }) => {
                 <CommentForm postId={params.id}/>
                 <Separator className="my-5"/>
                 <div className="flex flex-col gap-y-7">
-                    {data.Comment.map((item) => (
+                    {data.comments.map((item) => (
                         <div key={item.id} className="flex flex-col">
                             <div className="flex items-center gap-x-3">
                                 <img src={item.User?.imageUrl

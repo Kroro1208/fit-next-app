@@ -6,6 +6,7 @@ import { Prisma, TypeOfVote } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { uploadImage } from "./lib/supabase";
 import { syncUserAuth } from "./lib/auth";
+import { metadata } from './layout';
 
 export async function updateUserProfile(prevState: any, formData: FormData) {
     console.log("updateUserProfile function called");
@@ -306,7 +307,19 @@ export async function handleVote(formData: FormData) {
             data: {
                 userId: post.userId as string,
                 postId: postId,
+                type: 'vote_milestone',
                 message: 'あなたの投稿が50件以上のUP投票を獲得し、共有リンクが表示されるようになりました!'
+            }
+        });
+    }
+
+    if (post.userId && post.userId !== user.id) {
+        await prisma.notification.create({
+            data: {
+                userId: post.userId,
+                postId: postId,
+                type: voteDirection === 'UP' ? 'upvote' : 'downvote',
+                message: `${user.given_name || 'ユーザー'} があなたの投稿に${voteDirection === 'UP' ? 'UP' : 'DOWN'}投票しました。`
             }
         });
     }
@@ -314,15 +327,21 @@ export async function handleVote(formData: FormData) {
     revalidatePath("/");
 }
 
-export async function createComment(formData: FormData){
+export async function createComment(formData: FormData) {
     const { getUser } = getKindeServerSession();
     const user = await getUser();
 
-    if(!user) return redirect('/api/auth/login');
+    if (!user) return redirect('/api/auth/login');
 
     const comment = formData.get('comment') as string;
     const postId = formData.get('postId') as string;
-    const data = await prisma.comment.create({
+    
+    const post = await prisma.post.findUnique({
+        where: { id: postId },
+        select: { userId: true }
+    });
+
+    const newComment = await prisma.comment.create({
         data: {
             text: comment,
             userId: user.id,
@@ -330,15 +349,30 @@ export async function createComment(formData: FormData){
         }
     });
 
-    revalidatePath(`{/post/${postId}}`);
+    // 投稿が存在し、投稿者が現在のユーザーでない場合のみ通知を作成
+    if (post?.userId && post.userId !== user.id) {
+        await prisma.notification.create({
+            data: {
+                userId: post.userId,
+                postId: postId,
+                commentId: newComment.id,
+                type: 'comment',
+                message: `${user.given_name || 'ユーザー'} があなたの投稿にコメントしました。`
+            }
+        });
+    }
 
-    return data;
+    revalidatePath(`/post/${postId}`);
+    return newComment;
 }
 
 export interface Notification {
     id: string;
     message: string;
     createdAt: Date;
+    type: string;
+    postTitle?: string;
+    commentText?: string;
 }
 
 export async function getNotifications(): Promise<Notification[]> {
@@ -354,10 +388,17 @@ export async function getNotifications(): Promise<Notification[]> {
         orderBy: {
             createdAt: 'desc'
         },
-        select: {
-            id: true,
-            message: true,
-            createdAt: true,
+        include: {
+            post: {
+                select: {
+                    title: true,
+                }
+            },
+            comment: {
+                select: {
+                    text: true
+                }
+            }
         }
     });
 
@@ -372,7 +413,14 @@ export async function getNotifications(): Promise<Notification[]> {
         }
     });
 
-    return notifications;
+    return notifications.map((notification) => ({
+        id: notification.id,
+        message: notification.message,
+        createdAt: notification.createdAt,
+        type: notification.type,
+        postTitle: notification.post?.title,
+        commentText: notification.comment?.text
+    }));
 }
 
 export async function getUserInfo(userId: string) {
@@ -439,12 +487,21 @@ export async function followUser(userId: string) {
             action: 'unfollow'
         };
     } else {
-        await prisma.follow.create({
+        const newFollow = await prisma.follow.create({
             data: {
                 followerId: currentUser.id,
-                followingId: userId
+                followingId: userId,
             }
         });
+
+        await prisma.notification.create({
+            data: {
+                userId: userId,
+                followId: newFollow.id,
+                type: 'follow',
+                message: `${currentUser.given_name}があなたをフォローしました`
+            }
+        })
         return {
             action: 'follow'
         };

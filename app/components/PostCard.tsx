@@ -27,6 +27,12 @@ interface Props {
     shareLinkVisible: boolean;
 }
 
+interface ProcessedContent {
+    type: 'heading' | 'paragraph' | 'other' | 'error';
+    content: any;
+    level?: number;
+}
+
 const PostCard = ({
     id,
     title,
@@ -54,20 +60,27 @@ const PostCard = ({
         return '低信頼度';
     };
 
-    const processContent = (content: any) => {
-        if (typeof content === 'string') {
-            content = JSON.parse(content);
+    const processContent = (content: any): ProcessedContent => {
+        if (!content) {
+            return { type: 'error', content: '内容がありません' };
         }
-        if (content.content && content.content.length > 0) {
-            const firstItem = content.content[0];
+
+        try {
+            let parsedContent = content;
+            if (typeof content === 'string') {
+                parsedContent = JSON.parse(content);
+            }
+
+            if (!parsedContent.content || parsedContent.content.length === 0) {
+                return { type: 'error', content: '内容が空です' };
+            }
+
+            const firstItem = parsedContent.content[0];
             if (firstItem.type === 'heading') {
-                // 見出しの場合、レベルに応じて文字数を制限
                 const headingLimits = {
-                    1: 10,  // H1は10文字
-                    2: 15,  // H2は15文字
-                    3: 20   // H3は20文字
+                    1: 10, 2: 15, 3: 20
                 };
-                const limit = headingLimits[firstItem.attrs.level as keyof typeof headingLimits] || 30; // その他の見出しは30文字
+                const limit = headingLimits[firstItem.attrs.level as keyof typeof headingLimits] || 30;
     
                 const truncatedHeading = {
                     ...firstItem,
@@ -80,23 +93,24 @@ const PostCard = ({
                     type: 'heading',
                     level: firstItem.attrs.level,
                     content: {
-                        ...content,
+                        ...parsedContent,
                         content: [truncatedHeading]
                     }
                 };
             } else {
-                // 通常テキストの場合は最大3つの段落を表示
-                const paragraphs = content.content.filter((item: any) => item.type === 'paragraph').slice(0, 3);
+                const paragraphs = parsedContent.content.filter((item: any) => item.type === 'paragraph').slice(0, 3);
                 return {
                     type: 'paragraph',
                     content: {
-                        ...content,
+                        ...parsedContent,
                         content: paragraphs
                     }
                 };
             }
+        } catch (error) {
+            console.error('Error processing content:', error);
+            return { type: 'error', content: 'コンテンツの処理中にエラーが発生しました' };
         }
-        return { type: 'other', content };
     };
 
     const processedContent = processContent(jsonContent);
@@ -149,12 +163,10 @@ const PostCard = ({
                             <h2 className='text-xl font-semibold mb-2 hover:underline'>{title}</h2>
                         </Link>
                         <div className='mb-4'>
-                            {processedContent.type === 'heading' ? (
+                            {processedContent.type === 'error' ? (
+                                <p className="text-red-500">{processedContent.content}</p>
+                            ) : processedContent.type === 'heading' ? (
                                 <div className='text-2xl font-bold mb-2'>
-                                    <RenderJson data={processedContent.content} />
-                                </div>
-                            ) : processedContent.type === 'paragraph' ? (
-                                <div className='max-h-24 overflow-hidden text-sm'>
                                     <RenderJson data={processedContent.content} />
                                 </div>
                             ) : (

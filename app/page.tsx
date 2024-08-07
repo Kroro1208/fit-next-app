@@ -30,7 +30,7 @@ async function getData(searchParam: string) {
         downVoteCount: true,
         trustScore: true,
         shareLinkVisible: true,
-        Comment: {
+        comments: {
           select: {
             id: true,
           }
@@ -102,7 +102,7 @@ async function ShowItems({ searchParams }: { searchParams: { page: string } }) {
           subName={post.subName as string}
           title={post.title}
           userName={post.User?.userName as string}
-          commentAmount={post.Comment.length}
+          commentAmount={post.comments.length}
           upVoteCount={post.upVoteCount}
           downVoteCount={post.downVoteCount}
           trustScore={post.trustScore}
