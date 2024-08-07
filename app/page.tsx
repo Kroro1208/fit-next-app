@@ -7,61 +7,55 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import CreatePostCard from "./components/CreatePostCard";
 import prisma from "./lib/db";
-import PostCard from "./components/PostCard";
 import { Suspense } from "react";
 import SuspenseCard from "./components/SuspenseCard";
 import Pagination from "./components/Pagination";
 import UserInfoCard from "./components/UserInfo";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import FilterablePosts from "./components/FilterPosts";
 
 async function getData(searchParam: string) {
-  const [count, data] = await prisma.$transaction([
+  const [count, data, tags] = await prisma.$transaction([
     prisma.post.count(),
     prisma.post.findMany({
       take: 10,
       skip: searchParam ? (Number(searchParam) - 1) * 10 : 0,
-      select: {
-        id: true,
-        title: true,
-        createdAt: true,
-        textContent: true,
-        imageString: true,
-        upVoteCount: true,
-        downVoteCount: true,
-        trustScore: true,
-        shareLinkVisible: true,
-        comments: {
-          select: {
-            id: true,
-          }
-        },
+      include: {
+        tags: true,
         User: {
           select: {
             id: true,
             userName: true,
           }
         },
-        subName: true,
+        comments: {
+          select: {
+            id: true,
+          }
+        },
       },
       orderBy: {
         createdAt: "desc",
       }
-    })
+    }),
+    prisma.tag.findMany()
   ]);
 
-  return { data, count };
+  return { data, count, tags };
 }
 
 export default async function Home({searchParams}: {searchParams: {page: string}}) {
   const { getUser } = getKindeServerSession();
   const user = await getUser();
+  const { data, count, tags } = await getData(searchParams.page);
   return (
     <div className="max-w-[1000px] mx-auto flex gap-x-10 mt-4 mb-10">
       <div className="w-[65%] flex flex-col gap-y-5">
         <CreatePostCard />
         <Suspense fallback={<SuspenseCard />} key={searchParams.page}>
-          <ShowItems searchParams={searchParams} currentUserId={user?.id}/>
+          <FilterablePosts initialPosts={data} tags={tags} currentUserId={user?.id} />
         </Suspense>
+        <Pagination totalPages={Math.ceil(count / 10)} />
       </div>
       <div className="w-[35%]">
         <Card className="mt-5">
@@ -88,32 +82,3 @@ export default async function Home({searchParams}: {searchParams: {page: string}
     </div>
   );
 }
-
-async function ShowItems({ searchParams, currentUserId }: { searchParams: { page: string }, currentUserId?: string}) {
-  const { count, data } = await getData(searchParams.page);
-  return (
-    <>
-      {data.map((post) => (
-        <PostCard
-          key={post.id}
-          id={post.id}
-          imageString={post.imageString}
-          jsonContent={post.textContent}
-          subName={post.subName as string}
-          title={post.title}
-          userName={post.User?.userName as string}
-          commentAmount={post.comments.length}
-          upVoteCount={post.upVoteCount}
-          downVoteCount={post.downVoteCount}
-          trustScore={post.trustScore}
-          shareLinkVisible={post.shareLinkVisible}
-          currentUserId={currentUserId}
-          userId={post.User?.id}
-        />
-      ))}
-      <Pagination totalPages={Math.ceil(count / 10)} />
-    </>
-  );
-}
-
-

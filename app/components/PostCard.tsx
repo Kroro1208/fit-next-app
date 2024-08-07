@@ -30,6 +30,10 @@ interface Props {
     shareLinkVisible: boolean;
     currentUserId?: string;
     userId?: string;
+    tags?: {
+        id: string;
+        name: string
+    }[];
 }
 
 interface ProcessedContent {
@@ -51,7 +55,8 @@ const PostCard = ({
     trustScore,
     shareLinkVisible,
     currentUserId,
-    userId
+    userId,
+    tags
 }: Props) => {
     const router = useRouter();
     const { toast } = useToast();
@@ -216,6 +221,13 @@ const PostCard = ({
                                     height={150}
                                     className='w-full h-full object-cover'
                                 />
+                            </div>
+                        )}
+                        {tags && tags.length > 0 && (
+                            <div className='mt-2 space-x-2'>
+                            {tags.map(tag => (
+                                <Badge key={tag.id} variant="secondary">{tag.name}</Badge>
+                            ))}
                             </div>
                         )}
                     </CardContent>

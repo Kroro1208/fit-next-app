@@ -1,7 +1,7 @@
 "use client";
 import { Card, CardFooter, CardHeader } from '@/components/ui/card'
 import Image from 'next/image'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import image from '../../../../public/fitness.png'
 import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
@@ -12,9 +12,12 @@ import { Label } from '@/components/ui/label'
 import { TipTapEditor } from '@/app/components/TipTabEditor'
 import SubmitButton from '@/app/components/SubmitButton'
 import { UploadDropzone } from '@/app/components/Uploadthing'
-import { createPost } from '@/app/actions';
+import { createPost, getTags } from '@/app/actions';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
+import Select from 'react-select'
+import { MultiValue, ActionMeta } from 'react-select';
+
 
 const rules = [
     {
@@ -39,16 +42,31 @@ const rules = [
     },
 ]
 
+interface Tag {
+    value: string;
+    label: string;
+}
+
 const CreatePostRoute = ({params}: {params: {id: string}}) => {
     const [imageUrl, setImageUrl] = useState<null | string>(null);
     const [jsonString, setJsonString] = useState<string | null>(null);
     const [title, setTitle] = useState<null | string>(null);
-    const router = useRouter();
+    const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+    const [selectedTags, setSelectedTags] = useState<MultiValue<Tag>>([]);    const router = useRouter();
     const { toast } = useToast()
+
+    useEffect(() => {
+        const fetchTags = async () => {
+            const tags = await getTags();
+            setAvailableTags(tags.map(tag => ({ value: tag.id, label: tag.name })));
+        };
+        fetchTags();
+    }, []);
 
     const handleSubmit = async (formData: FormData) => {
         try {
-            const result = await createPost({ jsonString }, formData);
+            const tagIds = selectedTags.map(tag => tag.value);
+            const result = await createPost({ jsonString, tags: tagIds }, formData);
             
             if ('error' in result && typeof result.error === 'string') {
                 toast({
@@ -110,7 +128,17 @@ const CreatePostRoute = ({params}: {params: {id: string}}) => {
                                         placeholder='タイトルを入力'
                                         value={title ?? ""}
                                         onChange={(e) => setTitle(e.target.value)}/>
-                                <TipTapEditor setJsonString={setJsonString} jsonString={jsonString} />
+                                    <Label>タグ</Label>
+                                    <Select
+                                        isMulti
+                                        name="tags"
+                                        options={availableTags}
+                                        value={selectedTags}
+                                        onChange={(newValue: MultiValue<Tag>) => setSelectedTags(newValue)}
+                                        className="basic-multi-select"
+                                        classNamePrefix="select"
+                                    />
+                                    <TipTapEditor setJsonString={setJsonString} jsonString={jsonString} />
                                 </CardHeader>
                                 <CardFooter>
                                     <SubmitButton text="投稿作成"/>

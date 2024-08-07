@@ -151,7 +151,7 @@ export async function updateSubDescription(prevState: any, formData: FormData) {
 }
 
 export async function createPost(
-    { jsonString }: { jsonString: string | null },
+    { jsonString, tags }: { jsonString: string | null, tags: string[] },
     formData: FormData
     ) {
         const { getUser } = getKindeServerSession();
@@ -201,6 +201,9 @@ export async function createPost(
                     subName: subName.trim(),
                     userId: user.id,
                     textContent: jsonString,
+                    tags: {
+                        connect: tags.map(tagId => ({ id: tagId }))
+                    }
                 }
             });
 
@@ -209,6 +212,50 @@ export async function createPost(
             console.error('投稿の作成中にエラーが発生しました:', error);
             return { error: '投稿の作成に失敗しました。後でもう一度お試しください。' };
         }
+}
+
+export async function createTag(name: string) {
+    const tag = await prisma.tag.create({
+        data: { name }
+    });
+    return tag;
+}
+
+export async function getTags() {
+    const tags = await prisma.tag.findMany({
+        orderBy: {
+            name: 'asc'
+        }
+    });
+    return tags;
+}
+
+
+export async function getFilteredPosts(tagId?: string) {
+    const posts = await prisma.post.findMany({
+        where: tagId ? {
+        tags: {
+            some: { id: tagId }
+        }
+        } : {},
+        include: {
+        tags: true,
+        User: {
+            select: {
+            id: true,
+            userName: true,
+            }
+        },
+        comments: {
+            select: {
+            id: true,
+            }
+        },
+        },
+        orderBy: { createdAt: 'desc' },
+    });
+
+    return posts;
     }
 
 export async function deletePost (postId: string) {

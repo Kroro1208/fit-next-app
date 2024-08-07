@@ -66,6 +66,13 @@ model Post {
   Community        Community?     @relation(fields: [subName], references: [name])
   User             User?          @relation(fields: [userId], references: [id])
   votes            Vote[]
+  tags Tag[]
+}
+
+model Tag {
+  id String @id @default(uuid())
+  name String @unique
+  posts Post[]
 }
 
 model Notification {
