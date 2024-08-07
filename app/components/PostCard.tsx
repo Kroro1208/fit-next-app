@@ -1,17 +1,20 @@
+"use client";
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { MessageCircle, Share2 } from 'lucide-react'
+import { MessageCircle, Share2, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import React from 'react'
 import Image from 'next/image'
 import CopyLink from './CopyLink'
-import { handleVote } from '../actions'
+import { deletePost, handleVote } from '../actions'
 import UpVoteButton from './UpVoteButton'
 import DownVoteButton from './DownVoteButton'
 import RenderJson from './RenderJson'
 import { Progress } from '@/components/ui/progress';
+import { useRouter } from 'next/navigation'
+import { useToast } from '@/components/ui/use-toast';
 
 interface Props {
     title: string;
@@ -25,6 +28,8 @@ interface Props {
     commentAmount: number;
     trustScore: number;
     shareLinkVisible: boolean;
+    currentUserId?: string;
+    userId?: string;
 }
 
 interface ProcessedContent {
@@ -44,8 +49,12 @@ const PostCard = ({
     downVoteCount,
     commentAmount,
     trustScore,
-    shareLinkVisible
+    shareLinkVisible,
+    currentUserId,
+    userId
 }: Props) => {
+    const router = useRouter();
+    const { toast } = useToast();
     const voteCount = upVoteCount - downVoteCount;
 
     const getTrustScoreColor = (score: number) => {
@@ -115,6 +124,26 @@ const PostCard = ({
 
     const processedContent = processContent(jsonContent);
 
+    const handleDeletePost = async () => {
+        if(window.confirm('本当にこの投稿を削除しますか？')) {
+            try {
+                await deletePost(id);
+                router.push('/');
+            } catch (error) {
+                toast({
+                    variant: 'warning',
+                    title: 'Error',
+                    description: '投稿が削除に失敗しました'
+                });
+            }
+        }
+        toast({
+            variant: 'success',
+            title: 'Success',
+            description: '投稿が削除されました'
+        });
+    }
+
     return (
         <Card className='w-full'>
             <div className='flex'>
@@ -183,8 +212,8 @@ const PostCard = ({
                                 <Image
                                     src={imageString}
                                     alt='投稿画像'
-                                    width={600}
-                                    height={300}
+                                    width={300}
+                                    height={150}
                                     className='w-full h-full object-cover'
                                 />
                             </div>
@@ -201,6 +230,12 @@ const PostCard = ({
                                     <Share2 className='mr-1 h-4 w-4' />
                                     <CopyLink id={id} />
                                 </div>
+                            )}
+                            {currentUserId === userId && (
+                                <Button variant='ghost' size='sm' onClick={handleDeletePost}>
+                                    <Trash2 className='mr-1 h-4 w-4' />
+                                    削除
+                                </Button>
                             )}
                         </div>
                         <div className='flex items-center space-x-2'>

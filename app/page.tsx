@@ -60,7 +60,7 @@ export default async function Home({searchParams}: {searchParams: {page: string}
       <div className="w-[65%] flex flex-col gap-y-5">
         <CreatePostCard />
         <Suspense fallback={<SuspenseCard />} key={searchParams.page}>
-          <ShowItems searchParams={searchParams}/>
+          <ShowItems searchParams={searchParams} currentUserId={user?.id}/>
         </Suspense>
       </div>
       <div className="w-[35%]">
@@ -89,7 +89,7 @@ export default async function Home({searchParams}: {searchParams: {page: string}
   );
 }
 
-async function ShowItems({ searchParams }: { searchParams: { page: string } }) {
+async function ShowItems({ searchParams, currentUserId }: { searchParams: { page: string }, currentUserId?: string}) {
   const { count, data } = await getData(searchParams.page);
   return (
     <>
@@ -107,6 +107,8 @@ async function ShowItems({ searchParams }: { searchParams: { page: string } }) {
           downVoteCount={post.downVoteCount}
           trustScore={post.trustScore}
           shareLinkVisible={post.shareLinkVisible}
+          currentUserId={currentUserId}
+          userId={post.User?.id}
         />
       ))}
       <Pagination totalPages={Math.ceil(count / 10)} />

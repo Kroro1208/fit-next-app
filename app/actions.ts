@@ -211,6 +211,37 @@ export async function createPost(
         }
     }
 
+export async function deletePost (postId: string) {
+    const {getUser} = getKindeServerSession();
+    const user = await getUser();
+
+    if(!user || !user.id) {
+        throw new Error('認証が必要です');
+    }
+
+    const post = await prisma.post.findUnique({
+        where: {
+            id: postId,
+        },
+        select: {
+            userId: true
+        }
+    });
+
+    if(!post) throw new Error('投稿が見つかりません');
+    if(post.userId !== user.id) {
+        throw new Error('この投稿を削除する権限はありません');
+    }
+    await prisma.post.delete({
+        where: {
+            id: postId
+        }
+    });
+
+    revalidatePath("/");
+    return { success: true, message: '投稿が削除されました'};
+}
+
 export async function handleVote(formData: FormData) {
     const { getUser } = getKindeServerSession();
     const user = await getUser();
