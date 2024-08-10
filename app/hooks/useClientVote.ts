@@ -13,7 +13,7 @@ export function useClientVote(initialState: VoteState, postId: string) {
 
     const clientVote = async (direction: 'UP' | 'DOWN') => {
         const previousState = { ...voteState };
-
+    
         setVoteState(prev => {
             const newState = { ...prev };
             if (direction === 'UP') {
@@ -23,25 +23,26 @@ export function useClientVote(initialState: VoteState, postId: string) {
             }
             return newState;
         });
-
+    
         try {
-            const formData = new FormData();
-            formData.append('postId', postId);
-            formData.append('voteDirection', direction);
-
             const result = await fetch('/api/vote', {
                 method: 'POST',
-                body: formData,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ postId, voteDirection: direction }),
             });
-
+    
             if (!result.ok) {
-                throw new Error('Vote failed');
+                const errorText = await result.text();
+                console.error('Vote failed:', result.status, errorText);
+                throw new Error(`Vote failed: ${result.status} ${errorText}`);
             }
-
+    
             const updatedState = await result.json();
             setVoteState(updatedState);
         } catch (error) {
-            console.error('Vote failed:', error);
+            console.error('Vote error:', error);
             setVoteState(previousState);
             throw error;
         }

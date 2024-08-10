@@ -1,25 +1,22 @@
 "use client";
-import dynamic from 'next/dynamic';
-import { Suspense } from 'react';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { MessageCircle, Share2, Trash2 } from 'lucide-react'
-import Link from 'next/link'
-import Image from 'next/image'
-import CopyLink from './CopyLink'
-import { deletePost, handleVote } from '../actions'
-import UpVoteButton from './UpVoteButton'
-import DownVoteButton from './DownVoteButton'
-import RenderJson from './RenderJson'
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { MessageCircle, Share2, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import Image from 'next/image';
+import CopyLink from './CopyLink';
+import UpVoteButton from './UpVoteButton';
+import DownVoteButton from './DownVoteButton';
+import RenderJson from './RenderJson';
 import { Progress } from '@/components/ui/progress';
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
-import type { TipTapContent } from '@/types';
+import type { TipTapContent, TipTapNode } from '@/types';
 import type { Prisma } from '@prisma/client';
-
-const ClientPostCard = dynamic(() => import('./ClientPostCard'), { ssr: false });
+import { useClientVote } from '../hooks/useClientVote';
+import { useState } from 'react';
 
 interface Props {
     title: string;
@@ -41,45 +38,34 @@ interface Props {
     }[];
 }
 
-interface PostCardProps extends Props {
-    isClientSide?: boolean;
-}
-
 type ProcessedContent = 
-    | { type: 'error'; content: string }
-    | { type: 'heading'; level: number; content: string | TipTapContent }
-    | { type: 'paragraph'; content: string | TipTapContent };
+  | { type: 'error'; content: string }
+  | { type: 'heading'; level: number; content: string | TipTapContent }
+  | { type: 'paragraph'; content: string | TipTapContent };
 
-const PostCard: React.FC<PostCardProps> = (props) => {
+const ClientPostCard: React.FC<Props> = ({
+    id,
+    title,
+    imageString,
+    jsonContent,
+    subName,
+    userName,
+    upVoteCount,
+    downVoteCount,
+    commentAmount,
+    trustScore,
+    shareLinkVisible,
+    currentUserId,
+    userId,
+    tags
+}) => {
     const router = useRouter();
     const { toast } = useToast();
-
-    if (props.isClientSide) {
-    return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <ClientPostCard {...props} />
-        </Suspense>
-        );
-    }
-
-    const {
-        id,
-        title,
-        imageString,
-        jsonContent,
-        subName,
-        userName,
-        upVoteCount,
-        downVoteCount,
-        commentAmount,
-        trustScore,
-        shareLinkVisible,
-        currentUserId,
-        userId,
-        tags
-    } = props;
-
-    const voteCount = upVoteCount - downVoteCount;
+    const { voteState, clientVote } = useClientVote(
+        { upVoteCount, downVoteCount, trustScore },
+        id
+    );
+    const [isVoting, setIsVoting] = useState(false);
 
     const getTrustScoreColor = (score: number) => {
         if (score >= 70) return 'bg-green-500';
@@ -97,7 +83,7 @@ const PostCard: React.FC<PostCardProps> = (props) => {
         if (content === null || content === undefined) {
             return { type: 'error', content: '内容がありません' };
         }
-
+    
         try {
             let parsedContent: TipTapContent;
             if (typeof content === 'string') {
@@ -107,18 +93,18 @@ const PostCard: React.FC<PostCardProps> = (props) => {
             } else {
                 throw new Error('Invalid content format');
             }
-
+    
             if (!parsedContent.content || parsedContent.content.length === 0) {
                 return { type: 'error', content: '内容が空です' };
             }
-
+    
             const firstItem = parsedContent.content[0];
             if (firstItem.type === 'heading' && firstItem.attrs?.level) {
                 const headingLimits: Record<number, number> = {
                     1: 10, 2: 15, 3: 20
                 };
                 const limit = headingLimits[firstItem.attrs.level] || 30;
-
+    
                 const truncatedHeading = {
                     ...firstItem,
                     content: firstItem.content?.map((textNode) => ({
@@ -135,7 +121,7 @@ const PostCard: React.FC<PostCardProps> = (props) => {
                     }
                 };
             }
-
+    
             const paragraphs = parsedContent.content.filter((item) => item.type === 'paragraph').slice(0, 3);
             return {
                 type: 'paragraph',
@@ -155,13 +141,19 @@ const PostCard: React.FC<PostCardProps> = (props) => {
     const handleDeletePost = async () => {
         if(window.confirm('本当にこの投稿を削除しますか？')) {
             try {
-                await deletePost(id);
-                router.push('/');
-                toast({
-                    variant: 'success',
-                    title: 'Success',
-                    description: '投稿が削除されました'
+                const response = await fetch(`/api/posts/${id}`, {
+                    method: 'DELETE',
                 });
+                if (response.ok) {
+                    router.push('/');
+                    toast({
+                        variant: 'success',
+                        title: 'Success',
+                        description: '投稿が削除されました'
+                    });
+                } else {
+                    throw new Error('Failed to delete post');
+                }
             } catch (error) {
                 toast({
                     variant: 'warning',
@@ -172,21 +164,35 @@ const PostCard: React.FC<PostCardProps> = (props) => {
         }
     }
 
+    const handleVote = async (direction: 'UP' | 'DOWN') => {
+        setIsVoting(true);
+        try {
+            await clientVote(direction);
+        } catch (error) {
+            console.error('Vote error:', error);
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: '投票に失敗しました。もう一度お試しください。'
+            });
+        } finally {
+            setIsVoting(false);
+        }
+    };
+
     return (
         <Card className='w-full'>
             <div className='flex'>
                 <div className='flex flex-col items-center justify-center gap-3 p-2 bg-muted'>
-                    <form action={handleVote}>
-                        <input type="hidden" name='voteDirection' value="UP"/>
-                        <input type="hidden" name='postId' value={id}/>
+                    <Button onClick={() => handleVote('UP')} variant="ghost">
                         <UpVoteButton />
-                    </form>
-                    <span className='text-sm font-bold my-1'>{voteCount}</span>
-                    <form action={handleVote}>
-                        <input type="hidden" name='voteDirection' value="DOWN"/>
-                        <input type="hidden" name='postId' value={id}/>
+                    </Button>
+                    <span className='text-sm font-bold my-1'>
+                            {isVoting ? '...' : voteState.upVoteCount - voteState.downVoteCount}
+                    </span>
+                    <Button onClick={() => handleVote('DOWN')} variant="ghost">
                         <DownVoteButton />
-                    </form>
+                    </Button>
                 </div>
                 <div className='flex-1'>
                     <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
@@ -203,14 +209,14 @@ const PostCard: React.FC<PostCardProps> = (props) => {
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <div className='flex items-center space-x-2'>
-                                        <Progress value={trustScore} className={`w-20 h-2 [&>div]:${getTrustScoreColor(trustScore)}`} />
-                                        <Badge variant='outline' className={`${getTrustScoreColor(trustScore)} text-white`}>
-                                            {trustScore.toFixed(1)}%
+                                        <Progress value={voteState.trustScore} className={`w-20 h-2 [&>div]:${getTrustScoreColor(voteState.trustScore)}`} />
+                                        <Badge variant='outline' className={`${getTrustScoreColor(voteState.trustScore)} text-white`}>
+                                            {voteState.trustScore.toFixed(1)}%
                                         </Badge>
                                     </div>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    <p>信頼性スコア: {getTrustScoreText(trustScore)}</p>
+                                    <p>信頼性スコア: {getTrustScoreText(voteState.trustScore)}</p>
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
@@ -274,14 +280,14 @@ const PostCard: React.FC<PostCardProps> = (props) => {
                             )}
                         </div>
                         <div className='flex items-center space-x-2'>
-                            <Badge variant='secondary'>UP: {upVoteCount}</Badge>
-                            <Badge variant='secondary'>DOWN: {downVoteCount}</Badge>
+                            <Badge variant='secondary'>UP: {voteState.upVoteCount}</Badge>
+                            <Badge variant='secondary'>DOWN: {voteState.downVoteCount}</Badge>
                         </div>
                     </CardFooter>
                 </div>
             </div>
         </Card>
-    )
+    );
 };
 
-export default PostCard;
+export default ClientPostCard;

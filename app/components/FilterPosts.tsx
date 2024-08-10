@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import PostCard from './PostCard'
@@ -14,11 +14,11 @@ const FilterablePosts = ({ initialPosts, tags, currentUserId }: { initialPosts: 
         if (activeTag === tagId) {
             setActiveTag(null);
             const newPosts = await getFilteredPosts();
-            setPosts(newPosts as Post[]); // 型アサーションを使用
+            setPosts(newPosts as Post[]);
         } else {
             setActiveTag(tagId);
             const newPosts = await getFilteredPosts(tagId);
-            setPosts(newPosts as Post[]); // 型アサーションを使用
+            setPosts(newPosts as Post[]);
         }
     };
 
@@ -54,6 +54,7 @@ const FilterablePosts = ({ initialPosts, tags, currentUserId }: { initialPosts: 
                 currentUserId={currentUserId}
                 userId={post.User?.id}
                 tags={post.tags}
+                isClientSide={true}
             />
         ))}
         </div>
