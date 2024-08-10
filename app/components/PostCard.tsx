@@ -39,6 +39,7 @@ interface Props {
         id: string;
         name: string
     }[];
+    userVote: 'UP' | 'DOWN';
 }
 
 interface PostCardProps extends Props {

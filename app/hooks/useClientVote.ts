@@ -1,11 +1,10 @@
-'use client'
-
 import { useState } from 'react';
 
 interface VoteState {
     upVoteCount: number;
     downVoteCount: number;
     trustScore: number;
+    userVote: 'UP' | 'DOWN' | null;
 }
 
 export function useClientVote(initialState: VoteState, postId: string) {
@@ -16,10 +15,31 @@ export function useClientVote(initialState: VoteState, postId: string) {
     
         setVoteState(prev => {
             const newState = { ...prev };
-            if (direction === 'UP') {
-                newState.upVoteCount++;
+            if (direction === prev.userVote) {
+                // 同じ方向に再度投票した場合、投票を取り消す
+                if (direction === 'UP') {
+                    newState.upVoteCount--;
+                } else {
+                    newState.downVoteCount--;
+                }
+                newState.userVote = null;
             } else {
-                newState.downVoteCount++;
+                // 新しい投票または反対方向への投票
+                if (prev.userVote) {
+                    // 既存の投票を取り消す
+                    if (prev.userVote === 'UP') {
+                        newState.upVoteCount--;
+                    } else {
+                        newState.downVoteCount--;
+                    }
+                }
+                // 新しい投票を追加
+                if (direction === 'UP') {
+                    newState.upVoteCount++;
+                } else {
+                    newState.downVoteCount++;
+                }
+                newState.userVote = direction;
             }
             return newState;
         });
@@ -40,7 +60,10 @@ export function useClientVote(initialState: VoteState, postId: string) {
             }
     
             const updatedState = await result.json();
-            setVoteState(updatedState);
+            setVoteState(prev => ({
+                ...updatedState,
+                userVote: updatedState.userVote || prev.userVote
+            }));
         } catch (error) {
             console.error('Vote error:', error);
             setVoteState(previousState);

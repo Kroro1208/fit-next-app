@@ -15,7 +15,7 @@ import { Progress } from '@/components/ui/progress';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
 import { useClientVote } from '../hooks/useClientVote';
-import type { TipTapContent, TipTapNode } from '@/types';
+import type { TipTapContent } from '@/types';
 import type { Prisma } from '@prisma/client';
 
 interface Props {
@@ -36,37 +36,54 @@ interface Props {
         id: string;
         name: string
     }[];
+    userVote: 'UP' | 'DOWN';
 }
 
 type ProcessedContent = 
-  | { type: 'error'; content: string }
-  | { type: 'heading'; level: number; content: string | TipTapContent }
-  | { type: 'paragraph'; content: string | TipTapContent };
+    | { type: 'error'; content: string }
+    | { type: 'heading'; level: number; content: string | TipTapContent }
+    | { type: 'paragraph'; content: string | TipTapContent };
 
-const ClientPostCard: React.FC<Props> = ({
-    id,
-    title,
-    imageString,
-    jsonContent,
-    subName,
-    userName,
-    upVoteCount,
-    downVoteCount,
-    commentAmount,
-    trustScore,
-    shareLinkVisible,
-    currentUserId,
-    userId,
-    tags
-}) => {
-    const router = useRouter();
-    const { toast } = useToast();
-    const { voteState, clientVote } = useClientVote(
-        { upVoteCount, downVoteCount, trustScore },
-        id
-    );
-    const [isUpVoting, setIsUpVoting] = useState(false);
-    const [isDownVoting, setIsDownVoting] = useState(false);
+    const ClientPostCard: React.FC<Props> = ({
+        id,
+        title,
+        imageString,
+        jsonContent,
+        subName,
+        userName,
+        upVoteCount,
+        downVoteCount,
+        commentAmount,
+        trustScore,
+        shareLinkVisible,
+        currentUserId,
+        userId,
+        tags,
+        userVote // 新しいプロパティ
+    }) => {
+        const router = useRouter();
+        const { toast } = useToast();
+        const { voteState, clientVote } = useClientVote(
+            { upVoteCount, downVoteCount, trustScore, userVote },
+            id
+        );
+        const [isVoting, setIsVoting] = useState(false);
+    
+        const handleVote = async (direction: 'UP' | 'DOWN') => {
+            setIsVoting(true);
+            try {
+                await clientVote(direction);
+            } catch (error) {
+                console.error('Vote error:', error);
+                toast({
+                    variant: 'destructive',
+                    title: 'Error',
+                    description: '投票に失敗しました。もう一度お試しください。'
+                });
+            } finally {
+                setIsVoting(false);
+            }
+        };
 
     const getTrustScoreColor = (score: number) => {
         if (score >= 70) return 'bg-green-500';
@@ -138,6 +155,7 @@ const ClientPostCard: React.FC<Props> = ({
     };
 
     const processedContent = processContent(jsonContent);
+    const totalVote = voteState.upVoteCount - voteState.downVoteCount;
 
     const handleDeletePost = async () => {
         if(window.confirm('本当にこの投稿を削除しますか？')) {
@@ -165,36 +183,23 @@ const ClientPostCard: React.FC<Props> = ({
         }
     }
 
-    const handleVote = async (direction: 'UP' | 'DOWN') => {
-        if (direction === 'UP') {
-            setIsUpVoting(true);
-        } else {
-            setIsDownVoting(true);
-        }
-        try {
-            await clientVote(direction);
-        } catch (error) {
-            console.error('Vote error:', error);
-            toast({
-                variant: 'destructive',
-                title: 'Error',
-                description: '投票に失敗しました。もう一度お試しください。'
-            });
-        } finally {
-            setIsUpVoting(false);
-            setIsDownVoting(false);
-        }
-    };
-
     return (
         <Card className='w-full'>
             <div className='flex'>
-                <div className='flex flex-col items-center justify-center gap-3 p-2 bg-muted'>
-                    <Button onClick={() => handleVote('UP')} variant="ghost" disabled={isUpVoting || isDownVoting}>
+                <div className='flex flex-col items-center justify-center gap-3 p-2'>
+                    <Button 
+                        onClick={() => handleVote('UP')} 
+                        variant={voteState.userVote === 'UP' ? 'default' : 'ghost'} 
+                        disabled={isVoting}
+                    >
                         <UpVoteButton />
                     </Button>
-                    <span className='text-sm font-bold my-1'>{voteState.upVoteCount - voteState.downVoteCount}</span>
-                    <Button onClick={() => handleVote('DOWN')} variant="ghost" disabled={isUpVoting || isDownVoting}>
+                    <span className='text-sm font-bold my-1'>{totalVote}</span>
+                    <Button 
+                        onClick={() => handleVote('DOWN')} 
+                        variant={voteState.userVote === 'DOWN' ? 'default' : 'ghost'} 
+                        disabled={isVoting}
+                    >
                         <DownVoteButton />
                     </Button>
                 </div>

@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator'
 import { useToast } from '@/components/ui/use-toast'
 import type { ActionState } from '@/types';
 import Link from 'next/link'
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { useFormState } from 'react-dom'
 
 const initialState: ActionState = {

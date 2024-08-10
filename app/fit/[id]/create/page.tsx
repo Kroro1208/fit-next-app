@@ -1,7 +1,7 @@
 "use client";
 import { Card, CardFooter, CardHeader } from '@/components/ui/card'
 import Image from 'next/image'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import image from '../../../../public/fitness.png'
 import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'

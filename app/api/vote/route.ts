@@ -9,13 +9,13 @@ export async function POST(req: NextRequest) {
         const user = await getUser();
 
         if (!user) {
-            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ message: '認証されていないユーザーです' }, { status: 401 });
         }
 
         const { postId, voteDirection } = await req.json();
 
         if (!postId || !voteDirection) {
-            return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
+            return NextResponse.json({ message: 'このポストには投票できません' }, { status: 400 });
         }
 
         const result = await handleVote(postId, voteDirection as TypeOfVote, user.id);
