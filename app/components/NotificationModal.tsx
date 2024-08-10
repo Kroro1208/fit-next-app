@@ -1,8 +1,15 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-
+interface Notification {
+  id: string;
+  message: string;
+  createdAt: string | Date;
+  type: string;
+  postTitle?: string;
+  commentText?: string;
+}
 interface NotificationModalProps {
-  notifications: any[]
-  onClose: () => void
+  notifications: Notification[];
+  onClose: () => void;
 }
 
 const NotificationModal = ({ notifications, onClose }: NotificationModalProps) => {
@@ -15,7 +22,7 @@ const NotificationModal = ({ notifications, onClose }: NotificationModalProps) =
         <div className="mt-4">
           {notifications.length > 0 ? (
             notifications.map((notification, index) => (
-              <div key={index} className="mb-2 p-2 bg-secondary rounded">
+              <div key={notification.id} className="mb-2 p-2 bg-secondary rounded">
                 <p>{notification.message}</p>
                 <small>{new Date(notification.createdAt).toLocaleString()}</small>
               </div>

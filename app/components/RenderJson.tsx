@@ -1,4 +1,6 @@
-import { NodeHandler, NodeHandlers, TipTapRender } from "@troop.com/tiptap-react-render"
+import type { RenderJsonProps } from "@/types";
+import { type NodeHandler, type NodeHandlers, TipTapRender } from "@troop.com/tiptap-react-render"
+
 
 const doc: NodeHandler = (props) => {
     return <>{props.children}</>;
@@ -39,13 +41,15 @@ const handlers: NodeHandlers = {
     link: link,
 }
 
-const RenderJson = ({data}: {data: any}) => {
+const RenderJson: React.FC<RenderJsonProps> = ({ data }) => {
+    if (!data) return null;
+    
     const jsonData = typeof data === 'string' ? JSON.parse(data) : data;
     return (
-    <div className="px-2 pt-2 prose dark:prose-invert">
-        <TipTapRender handlers={handlers} node={jsonData}/>
-    </div>
+      <div className="px-2 pt-2 prose dark:prose-invert">
+        <TipTapRender handlers={handlers} node={jsonData} />
+      </div>
     );
-}
+  }
 
 export default RenderJson

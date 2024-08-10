@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { updateUserProfile } from '../actions';
+import type { UserProfileState } from '@/types';
 
 interface SettingsFormProps {
   userId: string | null;
@@ -25,10 +26,12 @@ function SubmitButton() {
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 const SettingsForm = ({ userId, username, imageUrl }: SettingsFormProps) => {
-  const [state, formAction] = useFormState(updateUserProfile, {
+  const initialState: UserProfileState = {
     message: '',
     status: '',
-  });
+  };
+
+  const [state, formAction] = useFormState(updateUserProfile, initialState);
   const [previewImage, setPreviewImage] = useState<string | null>(imageUrl);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -48,19 +51,13 @@ const SettingsForm = ({ userId, username, imageUrl }: SettingsFormProps) => {
     }
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     console.log('Form submitted');
     setIsSubmitting(true);
     const formData = new FormData(event.currentTarget);
-    try {
-      await formAction(formData);
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      // エラーメッセージを表示するための状態を更新
-    } finally {
-      setIsSubmitting(false);
-    }
+    formAction(formData);
+    setIsSubmitting(false);
   };
 
   return (
@@ -106,10 +103,10 @@ const SettingsForm = ({ userId, username, imageUrl }: SettingsFormProps) => {
 
       <SubmitButton />
 
-      {state?.status === 'success' && (
+      {state.status === 'success' && (
         <p className="text-green-600">{state.message}</p>
       )}
-      {state?.status === 'error' && (
+      {state.status === 'error' && (
         <p className="text-red-600">{state.message}</p>
       )}
     </form>

@@ -209,7 +209,8 @@ export default function UserInfoCard({ userId }: { userId: string }) {
             <Toast open={!!toastMessage} onOpenChange={() => setToastMessage("")}>
                 <div className="bg-yellow-200 border border-gray-200 rounded-md shadow-lg p-4 flex justify-between items-center">
                     <span>{toastMessage}</span>
-                    <button 
+                    <button
+                        type="button"
                         onClick={() => setToastMessage("")}
                         className="text-gray-500 hover:text-gray-700"
                     >

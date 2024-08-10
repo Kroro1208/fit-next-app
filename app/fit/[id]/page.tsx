@@ -37,7 +37,7 @@ async function getData(name: string, searchParam: string) {
                         createdAt: 'desc'
                     },
                     select: {
-                        Comment: {
+                        comments: {
                             select: {
                                 id: true
                             }
@@ -46,7 +46,7 @@ async function getData(name: string, searchParam: string) {
                         imageString: true,
                         id: true,
                         textContent: true,
-                        Vote: {
+                        votes: {
                             select: {
                                 userId: true,
                                 voteType: true,
@@ -89,8 +89,8 @@ const CommunityRoute = async ({
                 ) : (
                     <>
                         {data?.posts.map((post) => {
-                            const upVoteCount = post.Vote.filter(vote => vote.voteType === "UP").length;
-                            const downVoteCount = post.Vote.filter(vote => vote.voteType === "DOWN").length;
+                            const upVoteCount = post.votes.filter(vote => vote.voteType === "UP").length;
+                            const downVoteCount = post.votes.filter(vote => vote.voteType === "DOWN").length;
                             const totalVotes = upVoteCount + downVoteCount;
                             const trustScore = totalVotes > 0 ? (upVoteCount / totalVotes) * 100 : 50; // デフォルトを50%とする
                             
@@ -100,7 +100,7 @@ const CommunityRoute = async ({
                                     id={post.id} 
                                     imageString={post.imageString}
                                     subName={data.name}
-                                    commentAmount={post.Comment.length}
+                                    commentAmount={post.comments.length}
                                     title={post.title}
                                     userName={post.User?.userName as string}
                                     jsonContent={post.textContent}

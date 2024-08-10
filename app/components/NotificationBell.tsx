@@ -47,7 +47,7 @@ const NotificationBell = ({initialCount}: NotificationProps) => {
 
     return (
         <div className='relative'>
-            <button onClick={handleClick} className='focus:outline-none'>
+            <button type='button' onClick={handleClick} className='focus:outline-none'>
                 <Bell className='h-6 w-6'/>
                 {count > 0 && (
                     <Badge className='absolute -top-2 -right-2 px-2 py-1 text-xs'>

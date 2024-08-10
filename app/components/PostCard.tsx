@@ -15,14 +15,16 @@ import RenderJson from './RenderJson'
 import { Progress } from '@/components/ui/progress';
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/ui/use-toast';
+import type { TipTapContent, TipTapNode } from '@/types';
+import type { Prisma } from '@prisma/client';
 
 interface Props {
     title: string;
-    jsonContent: any;
     id: string;
     subName: string;
     userName: string;
     imageString: string | null;
+    jsonContent: Prisma.JsonValue | TipTapContent;
     upVoteCount: number;
     downVoteCount: number;
     commentAmount: number;
@@ -36,11 +38,10 @@ interface Props {
     }[];
 }
 
-interface ProcessedContent {
-    type: 'heading' | 'paragraph' | 'other' | 'error';
-    content: any;
-    level?: number;
-}
+type ProcessedContent = 
+  | { type: 'error'; content: string }
+  | { type: 'heading'; level: number; content: string | TipTapContent }
+  | { type: 'paragraph'; content: string | TipTapContent };
 
 const PostCard = ({
     id,
@@ -74,34 +75,38 @@ const PostCard = ({
         return '低信頼度';
     };
 
-    const processContent = (content: any): ProcessedContent => {
-        if (!content) {
+    const processContent = (content: Prisma.JsonValue | TipTapContent): ProcessedContent => {
+        if (content === null || content === undefined) {
             return { type: 'error', content: '内容がありません' };
         }
-
+    
         try {
-            let parsedContent = content;
+            let parsedContent: TipTapContent;
             if (typeof content === 'string') {
                 parsedContent = JSON.parse(content);
+            } else if (typeof content === 'object') {
+                parsedContent = content as unknown as TipTapContent;
+            } else {
+                throw new Error('Invalid content format');
             }
-
+    
             if (!parsedContent.content || parsedContent.content.length === 0) {
                 return { type: 'error', content: '内容が空です' };
             }
-
+    
             const firstItem = parsedContent.content[0];
-            if (firstItem.type === 'heading') {
-                const headingLimits = {
+            if (firstItem.type === 'heading' && firstItem.attrs?.level) {
+                const headingLimits: Record<number, number> = {
                     1: 10, 2: 15, 3: 20
                 };
-                const limit = headingLimits[firstItem.attrs.level as keyof typeof headingLimits] || 30;
+                const limit = headingLimits[firstItem.attrs.level] || 30;
     
                 const truncatedHeading = {
                     ...firstItem,
-                    content: firstItem.content.map((textNode: any) => ({
+                    content: firstItem.content?.map((textNode) => ({
                         ...textNode,
-                        text: textNode.text.slice(0, limit) + (textNode.text.length > limit ? '...' : '')
-                    }))
+                        text: textNode.text ? textNode.text.slice(0, limit) + (textNode.text.length > limit ? '...' : '') : ''
+                    })) || []
                 };
                 return {
                     type: 'heading',
@@ -111,16 +116,16 @@ const PostCard = ({
                         content: [truncatedHeading]
                     }
                 };
-            } else {
-                const paragraphs = parsedContent.content.filter((item: any) => item.type === 'paragraph').slice(0, 3);
-                return {
-                    type: 'paragraph',
-                    content: {
-                        ...parsedContent,
-                        content: paragraphs
-                    }
-                };
             }
+    
+            const paragraphs = parsedContent.content.filter((item) => item.type === 'paragraph').slice(0, 3);
+            return {
+                type: 'paragraph',
+                content: {
+                    ...parsedContent,
+                    content: paragraphs
+                }
+            };
         } catch (error) {
             console.error('Error processing content:', error);
             return { type: 'error', content: 'コンテンツの処理中にエラーが発生しました' };
@@ -134,19 +139,19 @@ const PostCard = ({
             try {
                 await deletePost(id);
                 router.push('/');
+                toast({
+                    variant: 'success',
+                    title: 'Success',
+                    description: '投稿が削除されました'
+                });
             } catch (error) {
                 toast({
                     variant: 'warning',
                     title: 'Error',
-                    description: '投稿が削除に失敗しました'
+                    description: '投稿の削除に失敗しました'
                 });
             }
         }
-        toast({
-            variant: 'success',
-            title: 'Success',
-            description: '投稿が削除されました'
-        });
     }
 
     return (

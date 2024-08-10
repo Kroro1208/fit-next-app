@@ -142,7 +142,7 @@ const PostPage = async ({ params }: { params: {id: string} }) => {
                                     <Image src={data.imageString} alt="投稿画像" width={500} height={400}
                                     className="w-full h-auto object-contain mt-2"/>
                                 )}
-                                {data.textContent && (<RenderJson data={data.textContent}/>)}
+                                <RenderJson data={data.textContent}/>
                             </CardContent>
                             <CardFooter className="flex justify-between items-center">
                                 <div className="flex items-center space-x-4">

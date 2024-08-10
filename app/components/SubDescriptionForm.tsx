@@ -5,19 +5,20 @@ import SaveButton from './SaveButton';
 import { updateSubDescription } from '../actions';
 import { useFormState } from 'react-dom';
 import { useToast } from '@/components/ui/use-toast';
+import type { SubDescriptionState } from '@/types';
 
 interface Props {
     subName: string;
     description: string | null | undefined;
 };
 
-const initialState = {
+const initialState: SubDescriptionState = {
     message: "",
-    status: "",
+    status: undefined,
 };
 
 const SubDesciptionForm = ({ description, subName }: Props) => {
-    const [state, formAction] = useFormState(updateSubDescription, initialState);
+    const [state, formAction] = useFormState<SubDescriptionState, FormData>(updateSubDescription, initialState);
     const { toast } = useToast();
     useEffect(() => {
         if(state.status ==='green'){

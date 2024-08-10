@@ -16,7 +16,7 @@ import { createPost, getTags } from '@/app/actions';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
 import Select from 'react-select'
-import { MultiValue, ActionMeta } from 'react-select';
+import type { MultiValue } from 'react-select';
 
 
 const rules = [

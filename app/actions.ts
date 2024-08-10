@@ -1,16 +1,14 @@
 "use server";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
-import prisma from "./lib/db";
-import { Prisma, TypeOfVote } from "@prisma/client";
+import { Prisma, PrismaClient, type TypeOfVote } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { uploadImage } from "./lib/supabase";
 import { syncUserAuth } from "./lib/auth";
-import { metadata } from './layout';
+import type { ActionState, UserProfileState } from "@/types";
 
-export async function updateUserProfile(prevState: any, formData: FormData) {
-    console.log("updateUserProfile function called");
-    
+
+export async function updateUserProfile(prevState: UserProfileState, formData: FormData):Promise<UserProfileState> {    
     try {
         const user = await syncUserAuth();
         console.log("Synced user:", user);
@@ -89,7 +87,7 @@ function isValidImageFile(file: File) {
     return validTypes.includes(file.type);
 }
 
-export const createCommunity = async (prevState: any, formData: FormData) => {
+export const createCommunity = async (prevState: ActionState, formData: FormData): Promise<ActionState> => {
     const { getUser } = getKindeServerSession();
     const user = await getUser();
     if(!user) {
@@ -118,7 +116,12 @@ export const createCommunity = async (prevState: any, formData: FormData) => {
     }
 }
 
-export async function updateSubDescription(prevState: any, formData: FormData) {
+interface SubDescriptionState {
+    status?: 'green' | 'error';
+    message?: string;
+  }
+
+export async function updateSubDescription(prevState: SubDescriptionState, formData: FormData): Promise<SubDescriptionState> {
     const { getUser } = getKindeServerSession();
     const user = getUser();
     if(!user) {
@@ -147,71 +150,98 @@ export async function updateSubDescription(prevState: any, formData: FormData) {
             status: 'error',
             message: '更新に失敗しました'
         }
-    };
+    }
+}
+
+const prisma = new PrismaClient();
+
+interface TipTapNodeAttrs {
+  level?: number;
+  href?: string;
+}
+
+interface TipTapNode {
+  type: string;
+  content?: TipTapNode[];
+  attrs?: TipTapNodeAttrs;
+  text?: string;
+}
+
+interface TipTapContent {
+  type: 'doc';
+  content: TipTapNode[];
+}
+
+interface CreatePostResult {
+  error?: string;
+  success?: boolean;
+  postId?: string;
 }
 
 export async function createPost(
-    { jsonString, tags }: { jsonString: string | null, tags: string[] },
-    formData: FormData
-    ) {
-        const { getUser } = getKindeServerSession();
-        const user = await getUser();
-        if (!user) {
-            return { error: 'ログインが必要です。' };
-        }
+  { jsonString, tags }: { jsonString: string | null; tags: string[] },
+  formData: FormData
+): Promise<CreatePostResult> {
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+  if (!user) {
+    return { error: 'ログインが必要です。' };
+  }
         
-        const title = formData.get('title') as string;
-        const imageUrl = formData.get('imageUrl') as string | null;
-        const subName = formData.get('subName') as string;
+  const title = formData.get('title') as string | null;
+  const imageUrl = formData.get('imageUrl') as string | null;
+  const subName = formData.get('subName') as string | null;
 
-        // バリデーション
-        if (!title || title.trim() === '') {
-            return { error: 'タイトルは必須です。' };
+  // バリデーション
+  if (!title || title.trim() === '') {
+    return { error: 'タイトルは必須です。' };
+  }
+
+  if (!subName || subName.trim() === '') {
+    return { error: 'サブカテゴリは必須です。' };
+  }
+
+  // jsonStringの詳細なチェック
+  if (!jsonString) {
+    return { error: '投稿内容は必須です。' };
+  }
+
+  try {
+    const contentObj: TipTapContent = JSON.parse(jsonString);
+    if (!contentObj.content || contentObj.content.length === 0) {
+      return { error: '投稿内容は必須です。' };
+    }
+
+    // TipTapの空の段落のみの場合をチェック
+    const hasNonEmptyContent = contentObj.content.some((node: TipTapNode) => 
+        node.type !== 'paragraph' || 
+        node.content?.some((childNode: TipTapNode) => 
+          childNode.type === 'text' && childNode.text?.trim() !== ''
+        )
+      );
+
+    if (!hasNonEmptyContent) {
+      return { error: '投稿内容は必須です。' };
+    }
+
+    const data = await prisma.post.create({
+      data: {
+        title: title.trim(),
+        imageString: imageUrl ? imageUrl.trim() : undefined,
+        subName: subName.trim(),
+        userId: user.id,
+        textContent: jsonString,
+        tags: {
+          connect: tags.map(tagId => ({ id: tagId }))
         }
+      }
+    });
 
-        if (!subName || subName.trim() === '') {
-            return { error: 'サブカテゴリは必須です。' };
-        }
-
-        // jsonStringの詳細なチェック
-        if (!jsonString) {
-            return { error: '投稿内容は必須です。' };
-        }
-
-        try {
-            const contentObj = JSON.parse(jsonString);
-            if (!contentObj.content || contentObj.content.length === 0) {
-                return { error: '投稿内容は必須です。' };
-            }
-
-            // TipTapの空の段落のみの場合をチェック
-            const hasNonEmptyContent = contentObj.content.some((node: any) => 
-                node.type !== 'paragraph' || 
-                (node.content && node.content.some((textNode: any) => textNode.text.trim() !== ''))
-            );
-
-            if (!hasNonEmptyContent) {
-                return { error: '投稿内容は必須です。' };
-            }
-
-            const data = await prisma.post.create({
-                data: {
-                    title: title.trim(),
-                    imageString: imageUrl ? imageUrl.trim() : undefined,
-                    subName: subName.trim(),
-                    userId: user.id,
-                    textContent: jsonString,
-                    tags: {
-                        connect: tags.map(tagId => ({ id: tagId }))
-                    }
-                }
-            });
-
-            return { success: true, postId: data.id };
-        } catch (error) {
-            console.error('投稿の作成中にエラーが発生しました:', error);
-            return { error: '投稿の作成に失敗しました。後でもう一度お試しください。' };
-        }
+    return { success: true, postId: data.id };
+  } catch (error) {
+    console.error('投稿の作成中にエラーが発生しました:', error);
+    return { error: '投稿の作成に失敗しました。後でもう一度お試しください。' };
+  }
 }
 
 export async function createTag(name: string) {
@@ -403,6 +433,12 @@ export async function handleVote(formData: FormData) {
     }
 
     revalidatePath("/");
+
+    return {
+        upVoteCount,
+        downVoteCount,
+        trustScore
+    };
 }
 
 export async function createComment(formData: FormData) {
@@ -564,26 +600,27 @@ export async function followUser(userId: string) {
         return {
             action: 'unfollow'
         };
-    } else {
-        const newFollow = await prisma.follow.create({
-            data: {
-                followerId: currentUser.id,
-                followingId: userId,
-            }
-        });
-
-        await prisma.notification.create({
-            data: {
-                userId: userId,
-                followId: newFollow.id,
-                type: 'follow',
-                message: `${currentUser.given_name}があなたをフォローしました`
-            }
-        })
-        return {
-            action: 'follow'
-        };
     }
+
+    const newFollow = await prisma.follow.create({
+        data: {
+            followerId: currentUser.id,
+            followingId: userId,
+        }
+    });
+
+    await prisma.notification.create({
+        data: {
+            userId: userId,
+            followId: newFollow.id,
+            type: 'follow',
+            message: `${currentUser.given_name}があなたをフォローしました`
+        }
+    });
+
+    return {
+        action: 'follow'
+    };
 }
 
 export async function getUserCommunities(userId: string) {

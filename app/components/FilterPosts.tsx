@@ -3,39 +3,23 @@ import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import PostCard from './PostCard'
 import { getFilteredPosts } from '@/app/actions'
-
-interface Tag {
-    id: string;
-    name: string;
-}
-
-interface Post {
-    id: string;
-    title: string;
-    imageString: string | null;
-    subName: string | null;
-    upVoteCount: number;
-    downVoteCount: number;
-    trustScore: number;
-    shareLinkVisible: boolean;
-    User: { id: string; userName: string | null } | null;
-    comments: { id: string }[];
-    tags: Tag[];
-    textContent: any;
-}
+import type { Post, Tag, TipTapContent } from '@/types'
+import type { Prisma } from '@prisma/client'
 
 const FilterablePosts = ({ initialPosts, tags, currentUserId }: { initialPosts: Post[], tags: Tag[], currentUserId?: string }) => {
-    const [posts, setPosts] = useState(initialPosts);
+    const [posts, setPosts] = useState<Post[]>(initialPosts);
     const [activeTag, setActiveTag] = useState<string | null>(null);
 
     const handleTagClick = async (tagId: string) => {
-    if (activeTag === tagId) {
-        setActiveTag(null);
-        setPosts(await getFilteredPosts());
-    } else {
-        setActiveTag(tagId);
-        setPosts(await getFilteredPosts(tagId));
-    }
+        if (activeTag === tagId) {
+            setActiveTag(null);
+            const newPosts = await getFilteredPosts();
+            setPosts(newPosts as Post[]); // 型アサーションを使用
+        } else {
+            setActiveTag(tagId);
+            const newPosts = await getFilteredPosts(tagId);
+            setPosts(newPosts as Post[]); // 型アサーションを使用
+        }
     };
 
     return (
@@ -58,7 +42,7 @@ const FilterablePosts = ({ initialPosts, tags, currentUserId }: { initialPosts: 
                 key={post.id}
                 id={post.id}
                 imageString={post.imageString}
-                jsonContent={post.textContent}
+                jsonContent={post.textContent as Prisma.JsonValue | TipTapContent}
                 subName={post.subName || ''}
                 title={post.title}
                 userName={post.User?.userName || ''}

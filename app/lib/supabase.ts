@@ -1,7 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+function getEnvVariable(key: string): string {
+    const value = process.env[key];
+    if (value === undefined) {
+      throw new Error(`環境変数 ${key} が設定されていません。`);
+    }
+    return value;
+  }
+  
+  const supabaseUrl = getEnvVariable('NEXT_PUBLIC_SUPABASE_URL');
+  const supabaseAnonKey = getEnvVariable('NEXT_PUBLIC_SUPABASE_ANON_KEY');
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
