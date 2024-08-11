@@ -734,3 +734,16 @@ export async function getBookmarkedPosts(userId: string) {
       tags: bookmark.post.tags,
     }));
   }
+
+  export async function isBookmarked(postId: string, userId: string): Promise<boolean> {
+  const bookmark = await prisma.bookmark.findUnique({
+    where: {
+      userId_postId: {
+        userId: userId,
+        postId: postId,
+      },
+    },
+  });
+
+  return !!bookmark;
+}

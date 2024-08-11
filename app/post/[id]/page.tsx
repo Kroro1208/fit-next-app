@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import { AlarmClock, MessageCircle, Share2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { handleVote } from "@/app/actions";
+import { handleVote, isBookmarked } from "@/app/actions";
 import UpVoteButton from "@/app/components/UpVoteButton";
 import DownVoteButton from "@/app/components/DownVoteButton";
 import RenderJson from "@/app/components/RenderJson";
@@ -16,8 +16,10 @@ import CommentForm from "@/app/components/CommentForm";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import BookMarkButton from "@/app/components/BookmarkButton";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 
-async function getData(id: string) {
+async function getData(id: string, userId: string) {
     const data = await prisma.post.findUnique({
         where: {
             id: id
@@ -64,15 +66,22 @@ async function getData(id: string) {
             trustScore: true
         }
     });
-    if(!data){
+    if (!data) {
         return notFound();
     }
 
-    return data;
+    let bookmarked = false;
+    if (userId) {
+        bookmarked = await isBookmarked(id, userId);
+    }
+
+    return { ...data, isBookmarked: bookmarked };
 }
 
-const PostPage = async ({ params }: { params: {id: string} }) => {
-    const data = await getData(params.id);
+const PostPage = async ({ params }: { params: {id: string, userId: string} }) => {
+    const { getUser } = getKindeServerSession();
+    const user = await getUser();
+    const data = await getData(params.id, params.userId);
 
     const upVoteCount = data.upVoteCount;
     const downVoteCount = data.downVoteCount;
@@ -90,6 +99,11 @@ const PostPage = async ({ params }: { params: {id: string} }) => {
         if (score >= 40) return '中程度の信頼度';
         return '低信頼度';
     };
+
+    let isBookmarkedState = false;
+    if (user) {
+        isBookmarkedState = await isBookmarked(data.id, user.id);
+    }
 
     return (
         <div className="max-w-[1200px] mx-auto flex gap-x-10 mt-4 mb-10">
@@ -156,6 +170,12 @@ const PostPage = async ({ params }: { params: {id: string} }) => {
                                             <CopyLink id={data.id} />
                                         </div>
                                     )}
+                                    {user && (
+                                        <BookMarkButton 
+                                            postId={data.id} 
+                                            isBookmarked={isBookmarkedState}
+                                        />
+                                    )}
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <Badge variant="secondary">UP: {upVoteCount}</Badge>
@@ -188,39 +208,39 @@ const PostPage = async ({ params }: { params: {id: string} }) => {
             </div>
             <div className="w-[30%]">
             <Card>
-                    <div className='bg-muted p-4 font-semibold'>コミュニティについて</div>
-                    <div className='p-4'>
-                        <div className='flex items-center gap-x-3'>
-                            <Image
-                                className='rounded-full h-16 w-16'
-                                src={`https://avatar.vercel.sh/${data?.subName}`}
-                                alt='image' width={60} height={60}
-                            />
-                            <Link href={`/fit/${data?.subName}`} className='font-medium'>
-                                fit/{data?.subName}
-                            </Link>
-                        </div>
-                            <p className='text-sm font-normal text-secondary-foreground mt-2'>
-                                {data?.Community?.description}
-                            </p>
-                        <div className='flex items-center gap-x-2 mt-4'>
-                            <AlarmClock className='h-5 w-5 text-muted-foreground'/>
-                        <p className='text-muted-foreground font-medium text-sm'>
-                            作成日: {new Date(data?.createdAt as Date).toLocaleDateString('ja-JP', {
-                            year: 'numeric',
-                            month: 'long',
-                            weekday: 'long',
-                            day: 'numeric'
-                            })}
-                        </p>
-                        </div>
-                        <Separator className='my-5'/>
-                        <Button className='rounded-full w-full' asChild>
-                            <Link href={`/fit/${data?.subName}/create`}>
-                                投稿作成
-                            </Link>
-                        </Button>
+                <div className='bg-muted p-4 font-semibold'>コミュニティについて</div>
+                <div className='p-4'>
+                    <div className='flex items-center gap-x-3'>
+                        <Image
+                            className='rounded-full h-16 w-16'
+                            src={`https://avatar.vercel.sh/${data?.subName}`}
+                            alt='image' width={60} height={60}
+                        />
+                        <Link href={`/fit/${data?.subName}`} className='font-medium'>
+                            fit/{data?.subName}
+                        </Link>
                     </div>
+                        <p className='text-sm font-normal text-secondary-foreground mt-2'>
+                            {data?.Community?.description}
+                        </p>
+                    <div className='flex items-center gap-x-2 mt-4'>
+                        <AlarmClock className='h-5 w-5 text-muted-foreground'/>
+                    <p className='text-muted-foreground font-medium text-sm'>
+                        作成日: {new Date(data?.createdAt as Date).toLocaleDateString('ja-JP', {
+                        year: 'numeric',
+                        month: 'long',
+                        weekday: 'long',
+                        day: 'numeric'
+                        })}
+                    </p>
+                    </div>
+                    <Separator className='my-5'/>
+                    <Button className='rounded-full w-full' asChild>
+                        <Link href={`/fit/${data?.subName}/create`}>
+                            投稿作成
+                        </Link>
+                    </Button>
+                </div>
             </Card>
             </div>
         </div>
