@@ -17,6 +17,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useClientVote } from '../hooks/useClientVote';
 import type { TipTapContent } from '@/types';
 import type { Prisma } from '@prisma/client';
+import { deletePost } from '../actions';
 
 interface Props {
     title: string;
@@ -68,6 +69,7 @@ type ProcessedContent =
             id
         );
         const [isVoting, setIsVoting] = useState(false);
+        const [isDeleting, setIsDeleting] = useState(false);
     
         const handleVote = async (direction: 'UP' | 'DOWN') => {
             setIsVoting(true);
@@ -158,27 +160,28 @@ type ProcessedContent =
     const totalVote = voteState.upVoteCount - voteState.downVoteCount;
 
     const handleDeletePost = async () => {
-        if(window.confirm('本当にこの投稿を削除しますか？')) {
+        if (window.confirm('本当にこの投稿を削除しますか？')) {
+            setIsDeleting(true);
             try {
-                const response = await fetch(`/api/posts/${id}`, {
-                    method: 'DELETE',
-                });
-                if (response.ok) {
-                    router.push('/');
+                const result = await deletePost(id);
+                if (result.success) {
                     toast({
-                        variant: 'success',
-                        title: 'Success',
-                        description: '投稿が削除されました'
+                        title: "Success",
+                        description: result.message,
                     });
+                    window.location.reload();
                 } else {
-                    throw new Error('Failed to delete post');
+                    throw new Error(result.message || '削除に失敗しました');
                 }
             } catch (error) {
+                console.error('Error deleting post:', error);
                 toast({
-                    variant: 'warning',
-                    title: 'Error',
-                    description: '投稿の削除に失敗しました'
+                    title: "Error",
+                    description: error instanceof Error ? error.message : '投稿の削除に失敗しました',
+                    variant: "destructive",
                 });
+            } finally {
+                setIsDeleting(false);
             }
         }
     }
@@ -282,9 +285,14 @@ type ProcessedContent =
                                 </div>
                             )}
                             {currentUserId === userId && (
-                                <Button variant='ghost' size='sm' onClick={handleDeletePost}>
+                                <Button 
+                                    variant='ghost' 
+                                    size='sm' 
+                                    onClick={handleDeletePost}
+                                    disabled={isDeleting}
+                                >
                                     <Trash2 className='mr-1 h-4 w-4' />
-                                    削除
+                                    {isDeleting ? '削除中...' : '削除'}
                                 </Button>
                             )}
                         </div>
