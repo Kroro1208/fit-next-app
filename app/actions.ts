@@ -1,7 +1,7 @@
 "use server";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
-import { Prisma, PrismaClient, type TypeOfVote } from "@prisma/client";
+import { Prisma, PrismaClient, type TypeOfVote, Comment } from '@prisma/client';
 import { revalidatePath } from "next/cache";
 import { uploadImage } from "./lib/supabase";
 import { syncUserAuth } from "./lib/auth";
@@ -260,7 +260,6 @@ export async function getTags() {
     return tags;
 }
 
-
 export async function getFilteredPosts(tagId?: string) {
     const posts = await prisma.post.findMany({
         where: tagId ? {
@@ -286,50 +285,50 @@ export async function getFilteredPosts(tagId?: string) {
     });
 
     return posts;
+}
+
+export async function deletePost(postId: string) {
+    const { getUser } = getKindeServerSession();
+    const user = await getUser();
+
+    if (!user || !user.id) {
+        throw new Error('認証が必要です');
     }
 
-    export async function deletePost(postId: string) {
-        const { getUser } = getKindeServerSession();
-        const user = await getUser();
-    
-        if (!user || !user.id) {
-            throw new Error('認証が必要です');
+    const post = await prisma.post.findUnique({
+        where: {
+            id: postId,
+        },
+        select: {
+            userId: true
         }
-    
-        const post = await prisma.post.findUnique({
+    });
+
+    if (!post) throw new Error('投稿が見つかりません');
+    if (post.userId !== user.id) {
+        throw new Error('この投稿を削除する権限はありません');
+    }
+
+    // トランザクションを使用して、投稿とそれに関連するコメントを削除
+    await prisma.$transaction(async (tx) => {
+        // まず、投稿に関連するすべてのコメントを削除
+        await tx.comment.deleteMany({
             where: {
-                id: postId,
-            },
-            select: {
-                userId: true
+                postId: postId
             }
         });
-    
-        if (!post) throw new Error('投稿が見つかりません');
-        if (post.userId !== user.id) {
-            throw new Error('この投稿を削除する権限はありません');
-        }
-    
-        // トランザクションを使用して、投稿とそれに関連するコメントを削除
-        await prisma.$transaction(async (tx) => {
-            // まず、投稿に関連するすべてのコメントを削除
-            await tx.comment.deleteMany({
-                where: {
-                    postId: postId
-                }
-            });
-    
-            // 次に、投稿自体を削除
-            await tx.post.delete({
-                where: {
-                    id: postId
-                }
-            });
+
+        // 次に、投稿自体を削除
+        await tx.post.delete({
+            where: {
+                id: postId
+            }
         });
-    
-        revalidatePath("/");
-        return { success: true, message: '投稿と関連するコメントが削除されました' };
-    }
+    });
+
+    revalidatePath("/");
+    return { success: true, message: '投稿と関連するコメントが削除されました' };
+}
 
 export async function handleVote(formData: FormData) {
     const { getUser } = getKindeServerSession();
@@ -663,3 +662,75 @@ export async function getUserCommunities(userId: string) {
         posts: undefined,
     }));
 }
+
+export async function toggleBookmark(postId: string) {
+    const { getUser } = getKindeServerSession()
+    const user = await getUser();
+    if(!user) {
+        throw new Error ('認証が必要です');
+    }
+
+    const existingBookmark = await prisma.bookmark.findUnique({
+        where: {
+            userId_postId: {
+                userId: user.id,
+                postId: postId
+            }
+        }
+    });
+
+    if(existingBookmark) {
+        await prisma.bookmark.delete({
+            where: {
+                id: existingBookmark.id
+            },
+        });
+        revalidatePath(`/post/${postId}`);
+        return { action: "unbookmark" };
+    }
+
+    await prisma.bookmark.create({
+        data: {
+            userId: user.id,
+            postId: postId
+        }
+    });
+    revalidatePath(`/post/${postId}`);
+    return { action: "bookmark" };
+}
+
+export async function getBookmarkedPosts(userId: string) {
+    const bookmarkedPosts = await prisma.bookmark.findMany({
+      where: {
+        userId: userId,
+      },
+      include: {
+        post: {
+          include: {
+            User: true,
+            Community: true,
+            comments: true,
+            votes: {
+              where: {
+                userId: userId,
+              },
+            },
+            tags: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  
+    return bookmarkedPosts.map((bookmark) => ({
+      ...bookmark.post,
+      userName: bookmark.post.User?.userName || "Unknown",
+      jsonContent: bookmark.post.textContent,
+      commentAmount: bookmark.post.comments.length,
+      userVote: bookmark.post.votes[0]?.voteType || null,
+      isBookmarked: true,
+      tags: bookmark.post.tags,
+    }));
+  }

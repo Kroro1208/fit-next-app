@@ -20,6 +20,7 @@ import type { TipTapContent } from '@/types';
 import type { Prisma } from '@prisma/client';
 
 const ClientPostCard = dynamic(() => import('./ClientPostCard'), { ssr: false });
+const BookmarkButton = dynamic(() => import('./BookmarkButton'), { ssr: false });
 
 interface Props {
     title: string;
@@ -40,6 +41,7 @@ interface Props {
         name: string
     }[];
     userVote: 'UP' | 'DOWN' | null;
+    isBookmarked: boolean;
 }
 
 interface PostCardProps extends Props {
@@ -77,7 +79,8 @@ const PostCard: React.FC<PostCardProps> = (props) => {
         shareLinkVisible,
         currentUserId,
         userId,
-        tags
+        tags,
+        isBookmarked
     } = props;
 
     const voteCount = upVoteCount - downVoteCount;
@@ -267,6 +270,7 @@ const PostCard: React.FC<PostCardProps> = (props) => {
                                     <CopyLink id={id} />
                                 </div>
                             )}
+                            <BookmarkButton postId={id} isBookmarked={props.isBookmarked} />
                             {currentUserId === userId && (
                                 <Button variant='ghost' size='sm' onClick={handleDeletePost}>
                                     <Trash2 className='mr-1 h-4 w-4' />
