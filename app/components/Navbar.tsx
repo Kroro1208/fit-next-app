@@ -27,7 +27,7 @@ const Navbar = async () => {
     return (
         <nav className="h-[120px] w-full flex items-center justify-between border-b px-5 lg:px-14 bg-green-600">
             <Link href="/" className="flex items-center gap-x-3"> 
-                <Image src={logo} alt="desktop-text" className="h-28 p-1 w-[550px] hidden lg:block rounded-xl" />
+                <Image src={logo} alt="desktop-text" className="h-[125px] p-1 w-[500px] hidden lg:block rounded-xl" />
             </Link>
             <div className="flex items-center gap-x-4">
                 {

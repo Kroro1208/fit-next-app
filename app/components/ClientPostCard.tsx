@@ -190,21 +190,21 @@ type ProcessedContent =
         <Card className='w-full'>
             <div className='flex'>
                 <div className='flex flex-col items-center justify-center gap-3 p-2'>
-                    <Button 
+                    <button 
+                        type='button'
                         onClick={() => handleVote('UP')} 
-                        variant={voteState.userVote === 'UP' ? 'default' : 'ghost'} 
                         disabled={isVoting}
                     >
                         <UpVoteButton />
-                    </Button>
+                    </button>
                     <span className='text-sm font-bold my-1'>{totalVote}</span>
-                    <Button 
+                    <button
+                    type='button'
                         onClick={() => handleVote('DOWN')} 
-                        variant={voteState.userVote === 'DOWN' ? 'default' : 'ghost'} 
                         disabled={isVoting}
                     >
                         <DownVoteButton />
-                    </Button>
+                    </button>
                 </div>
                 <div className='flex-1'>
                     <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
@@ -212,7 +212,6 @@ type ProcessedContent =
                             <Link href={`/fit/${subName}`} className='font-semibold text-sm hover:underline'>
                                 fit/{subName}
                             </Link>
-                            <span className='text-sm text-muted-foreground'>•</span>
                             <p className='text-sm text-muted-foreground'>
                                 投稿者: <span className='font-medium hover:underline'>{userName}</span>
                             </p>
