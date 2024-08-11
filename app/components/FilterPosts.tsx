@@ -55,6 +55,7 @@ const FilterablePosts = ({ initialPosts, tags, currentUserId }: { initialPosts: 
                 userId={post.User?.id}
                 tags={post.tags}
                 isClientSide={true}
+                userVote={null}
             />
         ))}
         </div>
