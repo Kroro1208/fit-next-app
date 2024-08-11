@@ -701,49 +701,48 @@ export async function toggleBookmark(postId: string) {
 
 export async function getBookmarkedPosts(userId: string) {
     const bookmarkedPosts = await prisma.bookmark.findMany({
-      where: {
-        userId: userId,
-      },
-      include: {
-        post: {
-          include: {
-            User: true,
-            Community: true,
-            comments: true,
-            votes: {
-              where: {
-                userId: userId,
-              },
-            },
-            tags: true,
-          },
+        where: {
+            userId: userId,
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
+        include: {
+            post: {
+                include: {
+                User: true,
+                Community: true,
+                comments: true,
+                votes: {
+                    where: {
+                    userId: userId,
+                    },
+                },
+                tags: true,
+                },
+            },
+        },
+        orderBy: {
+            createdAt: "desc",
+        },
     });
-  
+
     return bookmarkedPosts.map((bookmark) => ({
-      ...bookmark.post,
-      userName: bookmark.post.User?.userName || "Unknown",
-      jsonContent: bookmark.post.textContent,
-      commentAmount: bookmark.post.comments.length,
-      userVote: bookmark.post.votes[0]?.voteType || null,
-      isBookmarked: true,
-      tags: bookmark.post.tags,
+        ...bookmark.post,
+        userName: bookmark.post.User?.userName || "Unknown",
+        jsonContent: bookmark.post.textContent,
+        commentAmount: bookmark.post.comments.length,
+        userVote: bookmark.post.votes[0]?.voteType || null,
+        isBookmarked: true,
+        tags: bookmark.post.tags,
     }));
-  }
+}
 
-  export async function isBookmarked(postId: string, userId: string): Promise<boolean> {
-  const bookmark = await prisma.bookmark.findUnique({
-    where: {
-      userId_postId: {
-        userId: userId,
-        postId: postId,
-      },
-    },
-  });
-
-  return !!bookmark;
+export async function isBookmarked(postId: string, userId: string): Promise<boolean> {
+    const bookmark = await prisma.bookmark.findUnique({
+        where: {
+            userId_postId: {
+            userId: userId,
+            postId: postId,
+            },
+        },
+    });
+    return !!bookmark;
 }
