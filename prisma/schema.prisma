@@ -23,6 +23,7 @@ model User {
   Vote               Vote[]
   followers          Follow[]       @relation("Follower")
   following          Follow[]       @relation("Following")
+  bookmarks          Bookmark[]
 }
 
 model Follow {
@@ -66,7 +67,18 @@ model Post {
   Community        Community?     @relation(fields: [subName], references: [name])
   User             User?          @relation(fields: [userId], references: [id])
   votes            Vote[]
-  tags Tag[]
+  tags             Tag[]
+  bookmarks        Bookmark[]
+}
+
+model Bookmark {
+  id String @id @default(uuid())
+  userId String
+  postId String
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id])
+  post Post @relation(fields: [postId], references: [id])
+  @@unique([userId, postId])
 }
 
 model Tag {

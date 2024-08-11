@@ -30,9 +30,6 @@ const UserDropDown = ({ userImage }: Props) => {
                 <Link href="/fit/naoy/create">投稿作成</Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
-                <Link href="#">保存した記事</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
                 <Link href="#">コミュニティ一覧</Link>
             </DropdownMenuItem>
             <DropdownMenuItem>

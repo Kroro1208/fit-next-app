@@ -275,7 +275,9 @@ type ProcessedContent =
                         <div className='flex items-center space-x-4'>
                             <Button variant='ghost' size='sm' className='flex items-center'>
                                 <MessageCircle className='mr-1 h-5 w-5' />
-                                <span>{commentAmount}</span>
+                                <Link href={`/post/${id}`}>
+                                    <span>{commentAmount}</span>
+                                </Link>
                             </Button>
                             {shareLinkVisible && (
                                 <div className='flex items-center'>
