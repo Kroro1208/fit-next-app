@@ -288,36 +288,48 @@ export async function getFilteredPosts(tagId?: string) {
     return posts;
     }
 
-export async function deletePost (postId: string) {
-    const {getUser} = getKindeServerSession();
-    const user = await getUser();
-
-    if(!user || !user.id) {
-        throw new Error('認証が必要です');
-    }
-
-    const post = await prisma.post.findUnique({
-        where: {
-            id: postId,
-        },
-        select: {
-            userId: true
+    export async function deletePost(postId: string) {
+        const { getUser } = getKindeServerSession();
+        const user = await getUser();
+    
+        if (!user || !user.id) {
+            throw new Error('認証が必要です');
         }
-    });
-
-    if(!post) throw new Error('投稿が見つかりません');
-    if(post.userId !== user.id) {
-        throw new Error('この投稿を削除する権限はありません');
-    }
-    await prisma.post.delete({
-        where: {
-            id: postId
+    
+        const post = await prisma.post.findUnique({
+            where: {
+                id: postId,
+            },
+            select: {
+                userId: true
+            }
+        });
+    
+        if (!post) throw new Error('投稿が見つかりません');
+        if (post.userId !== user.id) {
+            throw new Error('この投稿を削除する権限はありません');
         }
-    });
-
-    revalidatePath("/");
-    return { success: true, message: '投稿が削除されました'};
-}
+    
+        // トランザクションを使用して、投稿とそれに関連するコメントを削除
+        await prisma.$transaction(async (tx) => {
+            // まず、投稿に関連するすべてのコメントを削除
+            await tx.comment.deleteMany({
+                where: {
+                    postId: postId
+                }
+            });
+    
+            // 次に、投稿自体を削除
+            await tx.post.delete({
+                where: {
+                    id: postId
+                }
+            });
+        });
+    
+        revalidatePath("/");
+        return { success: true, message: '投稿と関連するコメントが削除されました' };
+    }
 
 export async function handleVote(formData: FormData) {
     const { getUser } = getKindeServerSession();
