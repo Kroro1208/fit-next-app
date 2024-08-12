@@ -41,13 +41,13 @@ const Navbar = async () => {
                 </div>
             </div>
             <div className="flex items-center gap-x-4">
-                <Link href="#" passHref legacyBehavior>
+                <Link href="/top-posts" passHref legacyBehavior>
                     <Button variant="ghost" className="flex items-center gap-2 rounded-full text-white hover:bg-green-700 hover:text-white dark:hover:text-white transition-colors duration-300">
                         <TrendingUp size={18} />
-                        <span className="hidden sm:inline">高評価ランキング</span>
+                        <span className="hidden sm:inline">優良記事ランキング</span>
                     </Button>
                 </Link>
-                <Link href="#" passHref legacyBehavior>
+                <Link href="top-authors" passHref legacyBehavior>
                     <Button variant="ghost" className="flex items-center gap-2 rounded-full text-white hover:bg-green-700 hover:text-white dark:hover:text-white transition-colors duration-300">
                         <Award size={18} />
                         <span className="hidden sm:inline">優良ユーザーランキング</span>
