@@ -1,3 +1,4 @@
+import { isBookmarked } from '@/app/actions';
 import CreatePostCard from '@/app/components/CreatePostCard';
 import Pagination from '@/app/components/Pagination';
 import PostCard from '@/app/components/PostCard';
@@ -13,7 +14,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
 
-async function getData(name: string, searchParam: string) {
+async function getData(name: string, searchParam: string, userId: string | null) {
     unstable_noStore();
     const [count, data] = await prisma.$transaction([
         prisma.post.count({
@@ -37,6 +38,7 @@ async function getData(name: string, searchParam: string) {
                         createdAt: 'desc'
                     },
                     select: {
+                        id: true,
                         comments: {
                             select: {
                                 id: true
@@ -44,7 +46,6 @@ async function getData(name: string, searchParam: string) {
                         },
                         title: true,
                         imageString: true,
-                        id: true,
                         textContent: true,
                         votes: {
                             select: {
@@ -56,30 +57,44 @@ async function getData(name: string, searchParam: string) {
                             select: {
                                 userName: true
                             }
-                        }
+                        },
+                        userId: true
                     }
                 }
             }
         })
     ]);
-    return { data, count };
+
+    if (!data) {
+        throw new Error('Community not found');
+    }
+
+    const bookmarkedPosts = data.posts ? await Promise.all(
+        data.posts.map(async (post) => ({
+            ...post,
+            isBookmarked: userId ? await isBookmarked(post.id, userId) : false
+        }))
+    ) : [];
+
+    return { ...data, count, posts: bookmarkedPosts };
 }
 
 const CommunityRoute = async ({ 
     params,
     searchParams }:
     {
-        params: {id: string},
-        searchParams: {page: string}
+        params: {id: string}
+        searchParams: {page: string},
     }) => {
-    const {count, data} = await getData(params.id, searchParams.page);
     const { getUser } = getKindeServerSession();
     const user = await getUser();
+    const {count, ...data} = await getData(params.id, searchParams.page, user?.id || null);
+
     return (
         <div className='max-w-[1000px] mx-auto flex gap-x-10 mt-10'>
             <div className='w-[65%] flex flex-col gap-y-5'>
                 <CreatePostCard />
-                {data?.posts.length === 0 ? (
+                {data.posts.length === 0 ? (
                     <div className='min-h-300px] flex flex-col items-center justify-center rounded-md border border-dashed p-8 text-center'>
                         <div className='flex h-20 w-20 items-center justify-center rounded-full bg-primary/10'>
                             <FileQuestion className='h-10 w-10 text-primary'/>
@@ -88,7 +103,7 @@ const CommunityRoute = async ({
                     </div>
                 ) : (
                     <>
-                        {data?.posts.map((post) => {
+                        {data.posts.map((post) => {
                             const upVoteCount = post.votes.filter(vote => vote.voteType === "UP").length;
                             const downVoteCount = post.votes.filter(vote => vote.voteType === "DOWN").length;
                             const totalVotes = upVoteCount + downVoteCount;
@@ -98,16 +113,18 @@ const CommunityRoute = async ({
                                 <PostCard
                                     key={post.id}
                                     id={post.id} 
-                                    imageString={post.imageString}
+                                    imageString={post.imageString || ''}
                                     subName={data.name}
                                     commentAmount={post.comments.length}
                                     title={post.title}
-                                    userName={post.User?.userName as string}
+                                    userName={post.User?.userName || 'Unknown User'}
                                     jsonContent={post.textContent}
                                     upVoteCount={upVoteCount}
                                     downVoteCount={downVoteCount}
                                     trustScore={trustScore}
                                     shareLinkVisible={totalVotes >= 50} // 例: 50票以上で共有リンクを表示
+                                    isBookmarked={post.isBookmarked}
+                                    userVote={null}
                                 />
                             );
                         })}
@@ -122,34 +139,34 @@ const CommunityRoute = async ({
                         <div className='flex items-center gap-x-3'>
                             <Image
                                 className='rounded-full h-16 w-16'
-                                src={`https://avatar.vercel.sh/${data?.name}`}
+                                src={`https://avatar.vercel.sh/${data.name}`}
                                 alt='image' width={60} height={60}
                             />
-                            <Link href={`/fit/${data?.name}`} className='font-medium'>
-                                fit/{data?.name}
+                            <Link href={`/fit/${data.name}`} className='font-medium'>
+                                fit/{data.name}
                             </Link>
                         </div>
-                        {user?.id === data?.userId ? (
-                            <SubDescriptionForm description={data?.description} subName={params.id}/>
+                        {user?.id === data.userId ? (
+                            <SubDescriptionForm description={data.description || ''} subName={params.id}/>
                         ): (
                             <p className='text-sm font-normal text-secondary-foreground mt-2'>
-                                {data?.description}
+                                {data.description || 'No description available'}
                             </p>
                         )}
                         <div className='flex items-center gap-x-2 mt-4'>
                             <AlarmClock className='h-5 w-5 text-muted-foreground'/>
                         <p className='text-muted-foreground font-medium text-sm'>
-                            作成日: {new Date(data?.createdAt as Date).toLocaleDateString('ja-JP', {
+                            作成日: {data.createdAt ? new Date(data.createdAt).toLocaleDateString('ja-JP', {
                             year: 'numeric',
                             month: 'long',
                             weekday: 'long',
                             day: 'numeric'
-                            })}
+                            }) : 'Unknown date'}
                         </p>
                         </div>
                         <Separator className='my-5'/>
                         <Button className='rounded-full w-full' asChild>
-                            <Link href={user?.id ? `/fit/${data?.name}/create` : '/api/auth/login'}>
+                            <Link href={user?.id ? `/fit/${data.name}/create` : '/api/auth/login'}>
                                 投稿作成
                             </Link>
                         </Button>

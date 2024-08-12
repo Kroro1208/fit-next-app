@@ -23,43 +23,44 @@ const FilterablePosts = ({ initialPosts, tags, currentUserId }: { initialPosts: 
     };
 
     return (
-    <div>
-        <div className="mb-4 space-x-2">
-        {tags.map(tag => (
-            <Badge
-            key={tag.id}
-            variant={activeTag === tag.id ? "default" : "outline"}
-            className="cursor-pointer"
-            onClick={() => handleTagClick(tag.id)}
-            >
-            {tag.name}
-            </Badge>
-        ))}
+        <div>
+            <div className="mb-4 space-x-2">
+            {tags.map(tag => (
+                <Badge
+                key={tag.id}
+                variant={activeTag === tag.id ? "default" : "outline"}
+                className="cursor-pointer"
+                onClick={() => handleTagClick(tag.id)}
+                >
+                {tag.name}
+                </Badge>
+            ))}
+            </div>
+            <div className="space-y-4">
+            {posts.map(post => (
+                <PostCard
+                    key={post.id}
+                    id={post.id}
+                    imageString={post.imageString}
+                    jsonContent={post.textContent as Prisma.JsonValue | TipTapContent}
+                    subName={post.subName || ''}
+                    title={post.title}
+                    userName={post.User?.userName || ''}
+                    commentAmount={post.comments.length}
+                    upVoteCount={post.upVoteCount}
+                    downVoteCount={post.downVoteCount}
+                    trustScore={post.trustScore}
+                    shareLinkVisible={post.shareLinkVisible}
+                    currentUserId={currentUserId}
+                    userId={post.User?.id}
+                    tags={post.tags}
+                    isClientSide={true}
+                    userVote={null}
+                    isBookmarked={false}
+                />
+            ))}
+            </div>
         </div>
-        <div className="space-y-4">
-        {posts.map(post => (
-            <PostCard
-                key={post.id}
-                id={post.id}
-                imageString={post.imageString}
-                jsonContent={post.textContent as Prisma.JsonValue | TipTapContent}
-                subName={post.subName || ''}
-                title={post.title}
-                userName={post.User?.userName || ''}
-                commentAmount={post.comments.length}
-                upVoteCount={post.upVoteCount}
-                downVoteCount={post.downVoteCount}
-                trustScore={post.trustScore}
-                shareLinkVisible={post.shareLinkVisible}
-                currentUserId={currentUserId}
-                userId={post.User?.id}
-                tags={post.tags}
-                isClientSide={true}
-                userVote={null}
-            />
-        ))}
-        </div>
-    </div>
     );
 };
 

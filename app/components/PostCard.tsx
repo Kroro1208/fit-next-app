@@ -270,7 +270,7 @@ const PostCard: React.FC<PostCardProps> = (props) => {
                                     <CopyLink id={id} />
                                 </div>
                             )}
-                            <BookmarkButton postId={id} isBookmarked={props.isBookmarked} />
+                            <BookmarkButton postId={id} isBookmarked={isBookmarked} />
                             {currentUserId === userId && (
                                 <Button variant='ghost' size='sm' onClick={handleDeletePost}>
                                     <Trash2 className='mr-1 h-4 w-4' />

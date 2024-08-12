@@ -1,6 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
-import logo from "../../public/banner3.png"
+import logo from "../../public/banner2.png"
 import { ThemeToggle } from "./ThemeToggle"
 import { Button } from "@/components/ui/button"
 import { RegisterLink, LoginLink } from "@kinde-oss/kinde-auth-nextjs/components";
