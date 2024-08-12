@@ -66,7 +66,7 @@ async function getData(name: string, searchParam: string, userId: string | null)
     ]);
 
     if (!data) {
-        throw new Error('Community not found');
+        throw new Error('コミュニティが見つかりません');
     }
 
     const bookmarkedPosts = data.posts ? await Promise.all(
