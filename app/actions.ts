@@ -311,10 +311,34 @@ export async function deletePost(postId: string) {
 
     // トランザクションを使用して、投稿とそれに関連するコメントを削除
     await prisma.$transaction(async (tx) => {
-        // まず、投稿に関連するすべてのコメントを削除
+        await tx.notification.deleteMany({
+            where: {
+                postId
+            }
+        });
+        await tx.vote.deleteMany({
+            where: {
+                postId
+            }
+        });
+        await tx.bookmark.deleteMany({
+            where: {
+                postId
+            }
+        });
         await tx.comment.deleteMany({
             where: {
                 postId: postId
+            }
+        });
+        await tx.post.update({
+            where: {
+                id: postId
+            },
+            data: {
+                tags: {
+                    set: []
+                }
             }
         });
 
@@ -327,7 +351,7 @@ export async function deletePost(postId: string) {
     });
 
     revalidatePath("/");
-    return { success: true, message: '投稿と関連するコメントが削除されました' };
+    return { success: true, message: '投稿と関連する全てのデータが削除されました' };
 }
 
 export async function handleVote(formData: FormData) {
