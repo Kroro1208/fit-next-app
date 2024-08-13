@@ -60,7 +60,7 @@ type ProcessedContent =
         currentUserId,
         userId,
         tags,
-        userVote // 新しいプロパティ
+        userVote
     }) => {
         const router = useRouter();
         const { toast } = useToast();

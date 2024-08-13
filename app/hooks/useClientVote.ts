@@ -8,7 +8,10 @@ interface VoteState {
 }
 
 export function useClientVote(initialState: VoteState, postId: string) {
-    const [voteState, setVoteState] = useState(initialState);
+    const [voteState, setVoteState] = useState({
+        ...initialState,
+        trustScore: initialState.trustScore || 50
+    });
 
     const clientVote = async (direction: 'UP' | 'DOWN') => {
         const previousState = { ...voteState };
