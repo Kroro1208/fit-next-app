@@ -189,7 +189,7 @@ type ProcessedContent =
     return (
         <Card className='w-full'>
             <div className='flex'>
-                <div className='flex flex-col items-center justify-center gap-3 p-2'>
+                <div className='flex flex-col items-center justify-center gap-3 p-2 bg-muted'>
                     <button 
                         type='button'
                         onClick={() => handleVote('UP')} 

@@ -37,28 +37,28 @@ const FilterablePosts = ({ initialPosts, tags, currentUserId }: { initialPosts: 
             ))}
             </div>
             <div className="space-y-4">
-            {posts.map(post => (
-                <PostCard
-                    key={post.id}
-                    id={post.id}
-                    imageString={post.imageString}
-                    jsonContent={post.textContent as Prisma.JsonValue | TipTapContent}
-                    subName={post.subName || ''}
-                    title={post.title}
-                    userName={post.User?.userName || ''}
-                    commentAmount={post.comments.length}
-                    upVoteCount={post.upVoteCount}
-                    downVoteCount={post.downVoteCount}
-                    trustScore={post.trustScore}
-                    shareLinkVisible={post.shareLinkVisible}
-                    currentUserId={currentUserId}
-                    userId={post.User?.id}
-                    tags={post.tags}
-                    isClientSide={true}
-                    userVote={null}
-                    isBookmarked={false}
-                />
-            ))}
+                {posts.map(post => (
+                    <PostCard
+                        key={post.id}
+                        id={post.id}
+                        imageString={post.imageString}
+                        jsonContent={post.textContent as Prisma.JsonValue | TipTapContent}
+                        subName={post.subName || ''}
+                        title={post.title}
+                        userName={post.User?.userName || ''}
+                        commentAmount={post.comments.length}
+                        upVoteCount={post.upVoteCount}
+                        downVoteCount={post.downVoteCount}
+                        trustScore={post.trustScore}
+                        shareLinkVisible={post.shareLinkVisible}
+                        currentUserId={currentUserId}
+                        userId={post.User?.id}
+                        tags={post.tags}
+                        isClientSide={true}
+                        userVote={null}
+                        isBookmarked={false}
+                    />
+                ))}
             </div>
         </div>
     );

@@ -290,7 +290,7 @@ const PostCard: React.FC<PostCardProps> = (props) => {
                 </div>
             </div>
         </Card>
-    )
+    );
 };
 
 export default PostCard;
