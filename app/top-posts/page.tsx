@@ -1,17 +1,18 @@
-import React from 'react';
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import prisma from '@/app/lib/db';
 import PostCard from '@/app/components/PostCard';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { isBookmarked } from '@/app/actions';
 import { unstable_noStore } from 'next/cache';
-import PaginationWrapper from '../components/ PginationWrapper';
+import PaginationWrapper from '../components/PginationWrapper';
 import { Badge } from '@/components/ui/badge';
 import { FaTrophy, FaMedal } from 'react-icons/fa';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { InfoIcon } from "lucide-react";
 
 export const metadata = {
   title: '優良記事ランキング | YourSiteName',
-  description: '最も高評価を得た記事のランキングをご覧いただけます。',
+  description: '最も高評価を得た記事のランキングをご覧いただけます。ランキングページでは投票できません。記事の詳細ページから投票してください。',
 };
 
 async function getTopPosts(userId: string | null, page = '1', pageSize = '10') {
@@ -75,6 +76,12 @@ export default async function TopPostsPage({
           <CardDescription>最も高評価を得た記事のトップ10ランキングです。</CardDescription>
         </CardHeader>
       </Card>
+      <Alert variant="default" className="mb-6 bg-green-100 dark:bg-green-600 dark:text-white items-center">
+        <InfoIcon className="h-4 w-4" />
+        <AlertDescription>
+          安易な投票を避けるため、ランキングページでは記事に対する投票はできません。記事の詳細ページから投票してください。
+        </AlertDescription>
+      </Alert>
 
       <div className="space-y-6">
         {posts.map((post, index) => {
@@ -86,7 +93,7 @@ export default async function TopPostsPage({
           return (
             <Card key={post.id} className="overflow-hidden">
               <CardContent className="p-0">
-                <div className="flex items-center p-4 bg-gradient-to-r from-sky-500/30 to-transparent">
+                <div className="flex items-center p-4 bg-gradient-to-r from-sky-200 to-transparent">
                   {index < 3 ? (
                     <div className="mr-4">
                       {index === 0 && <FaTrophy className="text-4xl text-yellow-500" />}
@@ -115,6 +122,7 @@ export default async function TopPostsPage({
                     tags={post.tags}
                     userVote={post.votes.find(vote => vote.userId === user?.id)?.voteType || null}
                     isBookmarked={post.isBookmarked}
+                    hideVoteButtons={true}
                   />
                 </div>
               </CardContent>

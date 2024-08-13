@@ -42,6 +42,7 @@ interface Props {
     }[];
     userVote: 'UP' | 'DOWN' | null;
     isBookmarked: boolean;
+    hideVoteButtons?: boolean;
 }
 
 interface PostCardProps extends Props {
@@ -80,7 +81,8 @@ const PostCard: React.FC<PostCardProps> = (props) => {
         currentUserId,
         userId,
         tags,
-        isBookmarked
+        isBookmarked,
+        hideVoteButtons = false
     } = props;
 
     const voteCount = upVoteCount - downVoteCount;
@@ -179,19 +181,21 @@ const PostCard: React.FC<PostCardProps> = (props) => {
     return (
         <Card className='w-full'>
             <div className='flex'>
-                <div className='flex flex-col items-center justify-center gap-3 p-2 bg-muted'>
-                    <form action={handleVote}>
-                        <input type="hidden" name='voteDirection' value="UP"/>
-                        <input type="hidden" name='postId' value={id}/>
-                        <UpVoteButton />
-                    </form>
-                    <span className='text-sm font-bold my-1'>{voteCount}</span>
-                    <form action={handleVote}>
-                        <input type="hidden" name='voteDirection' value="DOWN"/>
-                        <input type="hidden" name='postId' value={id}/>
-                        <DownVoteButton />
-                    </form>
-                </div>
+                {!hideVoteButtons && (
+                    <div className='flex flex-col items-center justify-center gap-3 p-2 bg-muted'>
+                        <form action={handleVote}>
+                            <input type="hidden" name='voteDirection' value="UP"/>
+                            <input type="hidden" name='postId' value={id}/>
+                            <UpVoteButton />
+                        </form>
+                        <span className='text-sm font-bold my-1'>{voteCount}</span>
+                        <form action={handleVote}>
+                            <input type="hidden" name='voteDirection' value="DOWN"/>
+                            <input type="hidden" name='postId' value={id}/>
+                            <DownVoteButton />
+                        </form>
+                    </div>
+                )}
                 <div className='flex-1'>
                     <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
                         <div className='flex items-center space-x-2'>
