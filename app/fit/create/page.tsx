@@ -39,7 +39,6 @@ const CreateCommunity = () => {
                 <Separator className='mt-4'/>
                 <Label className='text-lg'>Name</Label>
                 <p className='text-muted-foreground'>大文字と小文字を含むコミュニティ名は変更できません</p>
-
                 <div className='relative mt-3'>
                     <p className='absolute left-0 w-8 flex items-center justify-center h-full text-muted-foreground'>
                         fit/

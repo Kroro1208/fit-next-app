@@ -49,6 +49,21 @@
   }
 }
 
+.prose h1 {
+  font-size: 2em;
+  font-weight: bold;
+}
+
+.prose h2 {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+.prose h3 {
+  font-size: 1.17em;
+  font-weight: bold;
+}
+
 
   @layer base {
     * {

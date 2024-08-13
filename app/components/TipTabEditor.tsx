@@ -49,7 +49,7 @@ export function TipTapEditor({setJsonString, jsonString}: {setJsonString: (json:
       content: jsonString ? JSON.parse(jsonString) : "Hello World",
       editorProps: {
         attributes: {
-          class: 'prose, dark:prose-invert'
+            class: 'custom-editor'
         }
       },
       onUpdate: ({editor}) => {
@@ -61,6 +61,14 @@ export function TipTapEditor({setJsonString, jsonString}: {setJsonString: (json:
         <div>
             <Menubar editor={editor}/>
             <EditorContent editor={editor} className='rounded-lg p-2 border min-h-[150px] mt-2'/>
+            <style jsx global>{`
+                .custom-editor {
+                    font-size: 1rem;
+                }
+                .custom-editor h1 { font-size: 2em; font-weight: bold; }
+                .custom-editor h2 { font-size: 1.5em; font-weight: bold; }
+                .custom-editor h3 { font-size: 1.17em; font-weight: bold; }
+            `}</style>
         </div>
     )
 }
