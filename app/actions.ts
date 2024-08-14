@@ -770,3 +770,37 @@ export async function isBookmarked(postId: string, userId: string): Promise<bool
     });
     return !!bookmark;
 }
+
+export async function getTopUsers(limit= 10) {
+    const users = await prisma.user.findMany({
+        select: {
+            id: true,
+            userName: true,
+            imageUrl: true,
+            posts: {
+                select: {
+                    upVoteCount: true,
+                    downVoteCount: true
+                }
+            }
+        }
+    });
+
+    const userScore = users.map(user => {
+        const totalPosts = user.posts.length;
+        const goodPosts = user.posts.filter(post => 
+        (post.upVoteCount / (post.upVoteCount + post.downVoteCount)) > 0.7 ).length;
+        const score = totalPosts > 0 ? (goodPosts / totalPosts) *  100 : 0;
+
+        return {
+            id: user.id,
+            name: user.userName || 'Unknown',
+            avatar: user.imageUrl,
+            score: Math.round(score)
+        }
+    });
+
+    return userScore.sort((a, b) => b.score - a.score).slice(0, limit).map((user, index) => ({
+        ...user, rank: index + 1
+    }));
+}

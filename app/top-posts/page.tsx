@@ -2,7 +2,7 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import prisma from '@/app/lib/db';
 import PostCard from '@/app/components/PostCard';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { isBookmarked } from '@/app/actions';
+import { getTopUsers, isBookmarked } from '@/app/actions';
 import { unstable_noStore } from 'next/cache';
 import PaginationWrapper from '../components/PginationWrapper';
 import { Badge } from '@/components/ui/badge';
@@ -65,6 +65,7 @@ export default async function TopPostsPage({
   const { getUser } = getKindeServerSession();
   const user = await getUser();
   const { posts, total } = await getTopPosts(user?.id || null, page, pageSize);
+  const topUsers = await getTopUsers();
 
   const totalPages = Math.ceil(total / Number.parseInt(pageSize, 10));
 
@@ -142,7 +143,7 @@ export default async function TopPostsPage({
         </div>
 
         <div className="w-[35%] mt-24">
-          <TopUsersClient />
+          <TopUsersClient initialTopUsers={topUsers}/>
         </div>
       </div>
     </div>

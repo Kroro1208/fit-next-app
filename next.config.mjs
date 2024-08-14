@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['lh3.googleusercontent.com', 'avatar.vercel.sh', 'utfs.io'],
+    domains: ['lh3.googleusercontent.com', 'avatar.vercel.sh', 'utfs.io', 'gravatar.com'],
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
@@ -14,7 +14,6 @@ const nextConfig = {
     }
     return config;
   },
-  // experimental オプションを削除
 };
 
 export default nextConfig;
