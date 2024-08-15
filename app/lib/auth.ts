@@ -1,22 +1,19 @@
+import type { CustomProvider } from "@/types";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type Provider } from '@supabase/supabase-js';
 
 // biome-ignore lint/style/noNonNullAssertion: <explanation>
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
 export async function syncUserAuth() {
     try {
-        const { getUser, getIdToken } = getKindeServerSession();
+        const { getUser } = getKindeServerSession();
         const kindeUser = await getUser();
-        const kindeToken = await getIdToken();
 
-        if (!kindeUser || !kindeToken) {
-            console.log("No Kinde user or token found");
+        if (!kindeUser) {
+            console.log("No Kinde user found");
             throw new Error('ユーザーが認証されていません');
         }
-
-        // KindeIdTokenを文字列に変換
-        const token = kindeToken.toString();
 
         console.log("Kinde user:", kindeUser);
 
@@ -29,18 +26,29 @@ export async function syncUserAuth() {
 
         if (!session) {
             console.log("No Supabase session, attempting to sign in");
-            const { data, error: signInError } = await supabase.auth.signInWithIdToken({
-                provider: 'kinde',
-                token: token,
+            const { data, error: signInError } = await supabase.auth.signInWithOAuth({
+                // TypeScriptのエラーを回避するためにasを使用
+                provider: 'kinde' as Provider & CustomProvider,
+                options: {
+                    redirectTo: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/callback`,
+                    scopes: '',  // 必要に応じてスコープを追加
+                    queryParams: {},  // 必要に応じてクエリパラメータを追加
+                    skipBrowserRedirect: Boolean(process.env.SKIP_BROWSER_REDIRECT)
+                }
             });
             
             if (signInError) {
                 console.error("Supabase sign in error:", signInError);
-                console.error("Error details:", JSON.stringify(signInError, null, 2));
                 throw new Error(`Supabaseサインインエラー: ${signInError.message}`);
             }
 
-            console.log("Supabase sign in successful:", data);
+            if (data && 'url' in data) {
+                console.log("Auth URL:", data.url);
+                // ここでリダイレクトを行う。例えば:
+                // window.location.href = data.url;
+            } else {
+                console.log("Supabase sign in initiated, but no URL returned");
+            }
         } else {
             console.log("Existing Supabase session:", session);
         }

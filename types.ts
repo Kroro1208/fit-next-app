@@ -1,6 +1,8 @@
 // types.ts
 import type { Prisma } from '@prisma/client';
 
+export type CustomProvider = 'kinde';
+
 export type JsonValue = Prisma.JsonValue;
 
 export interface TipTapNodeAttrs {
