@@ -1,8 +1,10 @@
-"use client"
-import { useEffect, useState } from 'react';
+"use client";
+
+import React from 'react';
+import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Trophy, Star } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Trophy, Star, User } from "lucide-react";
 import { 
   Tooltip,
   TooltipProvider,
@@ -13,7 +15,7 @@ import Link from 'next/link';
 interface TopUser {
   id: string;
   name: string;
-  avatar: string | null;
+  avatar: string;
   score: number;
   rank: number;
 }
@@ -36,8 +38,6 @@ const getRankIcon = (rank: number) => {
 };
 
 export default function TopUsersClient({initialTopUsers}: TopUsersClientProps) {
-  const [topUsers, setTopUsers] = useState<TopUser[]>(initialTopUsers);
-
   return (
     <Card className="mt-5">
       <CardHeader>
@@ -47,15 +47,21 @@ export default function TopUsersClient({initialTopUsers}: TopUsersClientProps) {
       </CardHeader>
       <CardContent>
         <TooltipProvider>
-          {topUsers.map((user) => (
+          {initialTopUsers.map((user) => (
             <Tooltip key={user.id}>
               <TooltipTrigger asChild>
                 <Link href={`/user/${user.id}`}>
                   <div className="flex items-center mb-4 p-3 rounded-lg hover:bg-gray-100 transition-colors duration-200 cursor-pointer">
                     <div className="mr-4 relative">
-                      <Avatar className="w-12 h-12">
-                        <AvatarImage src={user.avatar || undefined} alt={user.name} />
-                        <AvatarFallback><User /></AvatarFallback>
+                    <Avatar className="w-12 h-12">
+                        <Image
+                          src={user.avatar}
+                          alt={user.name}
+                          width={48}
+                          height={48}
+                          className="rounded-full object-cover"
+                        />
+                        <AvatarFallback><User className="w-6 h-6" /></AvatarFallback>
                       </Avatar>
                       <div className="absolute -top-2 -left-2">
                         {getRankIcon(user.rank)}
@@ -65,7 +71,7 @@ export default function TopUsersClient({initialTopUsers}: TopUsersClientProps) {
                       <p className="font-semibold">{user.name}</p>
                       <p className="text-sm text-muted-foreground">スコア: {user.score}</p>
                     </div>
-                  <div className="text-2xl font-bold text-blue-500">#{user.rank}</div>
+                    <div className="text-2xl font-bold text-blue-500">#{user.rank}</div>
                   </div>
                 </Link>
               </TooltipTrigger>

@@ -7,7 +7,6 @@ import { uploadImage } from "./lib/supabase";
 import { syncUserAuth } from "./lib/auth";
 import type { ActionState, UserProfileState } from "@/types";
 
-
 export async function updateUserProfile(prevState: UserProfileState, formData: FormData):Promise<UserProfileState> {    
     try {
         const user = await syncUserAuth();
@@ -795,7 +794,7 @@ export async function getTopUsers(limit= 10) {
         return {
             id: user.id,
             name: user.userName || 'Unknown',
-            avatar: user.imageUrl,
+            avatar: user.imageUrl || '/user-avatar.png',
             score: Math.round(score)
         }
     });

@@ -29,7 +29,7 @@ const FilterablePosts = ({ initialPosts, tags, currentUserId }: { initialPosts: 
                 <Badge
                 key={tag.id}
                 variant={activeTag === tag.id ? "default" : "outline"}
-                className="cursor-pointer"
+                className="cursor-pointer ring-2 ring-gray-300 hover:ring-green-500 transition-all"
                 onClick={() => handleTagClick(tag.id)}
                 >
                 {tag.name}
