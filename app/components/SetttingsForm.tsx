@@ -51,12 +51,12 @@ const SettingsForm = ({ userId, username, imageUrl }: SettingsFormProps) => {
     }
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     console.log('Form submitted');
     setIsSubmitting(true);
     const formData = new FormData(event.currentTarget);
-    formAction(formData);
+    await formAction(formData);
     setIsSubmitting(false);
   };
 

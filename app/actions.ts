@@ -3,47 +3,50 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
 import { Prisma, PrismaClient, type TypeOfVote, Comment } from '@prisma/client';
 import { revalidatePath } from "next/cache";
-import { uploadImage } from "./lib/supabase";
 import { syncUserAuth } from "./lib/auth";
 import type { ActionState, UserProfileState } from "@/types";
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
-export async function updateUserProfile(prevState: UserProfileState, formData: FormData):Promise<UserProfileState> {    
+export async function updateUserProfile(prevState: UserProfileState, formData: FormData): Promise<UserProfileState> {    
     try {
-        const user = await syncUserAuth();
-        console.log("Synced user:", user);
+        const { getUser } = getKindeServerSession();
+        const user = await getUser();
 
         if (!user) {
-            console.log("No user found after sync");
             return { message: 'ユーザーが見つかりません', status: 'error' };
         }
 
         const username = formData.get('username') as string;
         const imageFile = formData.get('image') as File | null;
+
         console.log("Username:", username);
         console.log("Image file:", imageFile);
 
-        console.log("Fetching current user info");
         const currentUser = await prisma.user.findUnique({
             where: { id: user.id },
             select: { imageUrl: true }
         });
-        console.log("Current user info:", currentUser);
 
         let imageUrl = currentUser?.imageUrl || null;
 
         if (imageFile && imageFile instanceof File && imageFile.size > 0) {
-            if (!isValidImageFile(imageFile)) {
+            const supabase = createClientComponentClient();
+            const { data, error } = await supabase.storage
+                .from('avatars')
+                .upload(`${user.id}/${Date.now()}.jpg`, imageFile);
+
+            if (error) {
+                console.error('Image upload error:', error);
                 return {
-                    message: '無効なファイル形式です。JPG、PNG、GIFのみ許可されています。',
+                    message: `画像アップロードエラー: ${error.message}`,
                     status: 'error',
                 };
             }
-            console.log("Uploading image");
-            imageUrl = await uploadImage(imageFile, user.id);
+
+            imageUrl = supabase.storage.from('avatars').getPublicUrl(data.path).data.publicUrl;
             console.log("Image uploaded, new URL:", imageUrl);
         }
 
-        console.log("Updating user profile");
         const updatedUser = await prisma.user.update({
             where: {
                 id: user.id,
@@ -62,25 +65,12 @@ export async function updateUserProfile(prevState: UserProfileState, formData: F
         };
     } catch (error) {
         console.error('Error updating user profile:', error);
-        if (error instanceof Error) {
-            console.error('Error message:', error.message);
-            console.error('Error stack:', error.stack);
-        }
-        if (error instanceof Prisma.PrismaClientKnownRequestError) {
-            if (error.code === 'P2002') {
-                return {
-                    message: 'このユーザー名はすでに使用されています',
-                    status: 'error',
-                };
-            }
-        }
         return {
             message: `エラーが発生しました: ${error instanceof Error ? error.message : '不明なエラー'}`,
             status: 'error',
         };
     }
 }
-
 function isValidImageFile(file: File) {
     const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
     return validTypes.includes(file.type);
@@ -118,7 +108,7 @@ export const createCommunity = async (prevState: ActionState, formData: FormData
 interface SubDescriptionState {
     status?: 'green' | 'error';
     message?: string;
-  }
+}
 
 export async function updateSubDescription(prevState: SubDescriptionState, formData: FormData): Promise<SubDescriptionState> {
     const { getUser } = getKindeServerSession();
