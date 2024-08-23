@@ -3,11 +3,13 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
 import { Prisma, PrismaClient, type TypeOfVote, Comment } from '@prisma/client';
 import { revalidatePath } from "next/cache";
-import { syncUserAuth } from "./lib/auth";
 import type { ActionState, UserProfileState } from "@/types";
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
 
-export async function updateUserProfile(prevState: UserProfileState, formData: FormData): Promise<UserProfileState> {    
+export async function updateUserProfile(prevState: UserProfileState, formData: FormData): Promise<UserProfileState> {
+    const supabase = createServerComponentClient({ cookies });
+    
     try {
         const { getUser } = getKindeServerSession();
         const user = await getUser();
@@ -20,30 +22,72 @@ export async function updateUserProfile(prevState: UserProfileState, formData: F
         const imageFile = formData.get('image') as File | null;
 
         console.log("Username:", username);
-        console.log("Image file:", imageFile);
+        console.log("User ID:", user.id);
 
-        const currentUser = await prisma.user.findUnique({
-            where: { id: user.id },
-            select: { imageUrl: true }
+        // バケットの存在確認
+        const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
+        if (bucketError || !buckets.some(b => b.name === 'avatars')) {
+            console.error('Bucket check failed:', bucketError || 'avatars bucket not found');
+            return {
+                message: 'ストレージ設定エラー: 管理者に連絡してください',
+                status: 'error',
+            };
+        }
+
+        // 権限チェック
+        const { data: permissions, error: permissionError } = await supabase.rpc('check_storage_permissions', {
+            bucket: 'avatars'
         });
 
-        let imageUrl = currentUser?.imageUrl || null;
+        if (permissionError || !permissions) {
+            console.error('Permission check failed:', permissionError);
+            return {
+                message: 'ストレージ権限エラー: 管理者に連絡してください',
+                status: 'error',
+            };
+        }
+
+        let imageUrl = null;
 
         if (imageFile && imageFile instanceof File && imageFile.size > 0) {
-            const supabase = createClientComponentClient();
+            const fileExt = imageFile.name.split('.').pop();
+            const fileName = `${user.id}_${Date.now()}.${fileExt}`;
+
+            console.log("File name:", fileName);
+
             const { data, error } = await supabase.storage
                 .from('avatars')
-                .upload(`${user.id}/${Date.now()}.jpg`, imageFile);
+                .upload(fileName, imageFile, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
 
             if (error) {
-                console.error('Image upload error:', error);
+                console.error('Image upload error:', JSON.stringify(error, null, 2));
+                console.error('User context:', JSON.stringify({
+                    userId: user.id,
+                    fileName,
+                    fileSize: imageFile.size,
+                    mimeType: imageFile.type
+                }, null, 2));
                 return {
                     message: `画像アップロードエラー: ${error.message}`,
                     status: 'error',
                 };
             }
 
-            imageUrl = supabase.storage.from('avatars').getPublicUrl(data.path).data.publicUrl;
+            if (!data) {
+                return {
+                    message: 'アップロードデータが見つかりません',
+                    status: 'error',
+                };
+            }
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('avatars')
+                .getPublicUrl(data.path);
+
+            imageUrl = publicUrl;
             console.log("Image uploaded, new URL:", imageUrl);
         }
 
@@ -53,7 +97,7 @@ export async function updateUserProfile(prevState: UserProfileState, formData: F
             },
             data: {
                 userName: username,
-                imageUrl: imageUrl,
+                imageUrl: imageUrl || undefined,
             },
         });
 
@@ -71,10 +115,8 @@ export async function updateUserProfile(prevState: UserProfileState, formData: F
         };
     }
 }
-function isValidImageFile(file: File) {
-    const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-    return validTypes.includes(file.type);
-}
+
+
 
 export const createCommunity = async (prevState: ActionState, formData: FormData): Promise<ActionState> => {
     const { getUser } = getKindeServerSession();
@@ -229,7 +271,7 @@ export async function createPost(
     return { success: true, postId: data.id };
   } catch (error) {
     console.error('投稿の作成中にエラーが発生しました:', error);
-    return { error: '投稿の作成に失敗しました。後でもう一度お試しください。' };
+    return { error: '投稿の作成に失敗しました。コミュニティは作成されましたか？' };
   }
 }
 

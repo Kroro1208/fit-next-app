@@ -38,6 +38,14 @@ export interface Post {
     textContent: string | TipTapContent | JsonValue;
 }
 
+export interface Community {
+  id: string;
+  name: string;
+  description: string | null;
+  createdAt: string;
+  postCount: number;
+}
+
 export interface Tag {
     id: string;
     name: string;

@@ -202,7 +202,6 @@ const PostCard: React.FC<PostCardProps> = (props) => {
                             <Link href={`/fit/${subName}`} className='font-semibold text-sm hover:underline'>
                                 fit/{subName}
                             </Link>
-                            <span className='text-sm text-muted-foreground'>•</span>
                             <p className='text-sm text-muted-foreground'>
                                 投稿者: <span className='font-medium hover:underline'>{userName}</span>
                             </p>

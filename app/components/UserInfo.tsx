@@ -36,9 +36,6 @@ export default function UserInfoCard({ userId }: { userId: string }) {
             try {
                 const info = await getUserInfo(userId);
                 setUserInfo(info);
-                // ここでフォロー状態も取得する必要があります
-                // 例: const followStatus = await getFollowStatus(userId);
-                // setIsFollowing(followStatus.isFollowing);
             } catch (error) {
                 console.error("Failed to fetch user info:", error);
                 setToastMessage("ユーザー情報の取得に失敗しました");

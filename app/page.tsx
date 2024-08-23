@@ -69,7 +69,7 @@ export default async function Home({searchParams}: {searchParams: {page: string}
             <Separator className="my-5"/>
             <div className="flex flex-col gap-y-3">
               <Button variant="secondary">
-                <Link href="/fit/naoya/create">経験を投稿する</Link>
+                <Link href="/fit/naoya/create">記事を投稿する</Link>
               </Button>
               <Button asChild>
                 <Link href="/fit/create">コミュニティを作る</Link>
