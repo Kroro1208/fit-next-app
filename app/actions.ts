@@ -3,9 +3,10 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
 import { Prisma, PrismaClient, type TypeOfVote, Comment } from '@prisma/client';
 import { revalidatePath } from "next/cache";
-import type { ActionState, UserProfileState } from "@/types";
+import type { ActionState, Post, UserProfileState } from "@/types";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
+import { Community } from '../types';
 
 export async function updateUserProfile(prevState: UserProfileState, formData: FormData): Promise<UserProfileState> {
     const supabase = createServerComponentClient({ cookies });
@@ -291,31 +292,54 @@ export async function getTags() {
     return tags;
 }
 
-export async function getFilteredPosts(tagId?: string) {
-    const posts = await prisma.post.findMany({
-        where: tagId ? {
-        tags: {
-            some: { id: tagId }
-        }
-        } : {},
-        include: {
-        tags: true,
-        User: {
-            select: {
-            id: true,
-            userName: true,
-            }
-        },
-        comments: {
-            select: {
-            id: true,
-            }
-        },
-        },
-        orderBy: { createdAt: 'desc' },
-    });
+export async function getFilteredPosts(tagId?: string,  searchQuery?: string): Promise<Post[]> {
+    const whereClause: Prisma.PostWhereInput = {};
 
-    return posts;
+    if (tagId) {
+        whereClause.tags = {
+            some: { id: tagId }
+        };
+    }
+
+    if (searchQuery) {
+        whereClause.OR = [
+            { title: { contains: searchQuery, mode: 'insensitive' } },
+            {
+                textContent: {
+                    path: ['$'],
+                    string_contains: searchQuery
+                }
+            }
+        ];
+    }
+
+    try {
+        const posts = await prisma.post.findMany({
+            where: whereClause,
+            include: {
+                User: {
+                    select: {
+                        id: true,
+                        userName: true,
+                    },
+                },
+                comments: {
+                    select: {
+                        id: true,
+                    },
+                },
+                tags: true,
+            },
+            orderBy: {
+                createdAt: 'desc',
+            },
+        });
+
+        return posts as Post[];
+    } catch (error) {
+        console.error('Error fetching filtered posts:', error);
+        throw new Error('Failed to fetch filtered posts');
+    }
 }
 
 export async function deletePost(postId: string) {
@@ -834,4 +858,95 @@ export async function getTopUsers(limit= 10) {
     return userScore.sort((a, b) => b.score - a.score).slice(0, limit).map((user, index) => ({
         ...user, rank: index + 1
     }));
+}
+
+export async function getData(page = "1", searchQuery?: string) {
+    const currentPage = Number.parseInt(page) || 1;
+    const postsPerPage = 10;
+
+    let whereClause: Prisma.PostWhereInput = {};
+
+    if (searchQuery) {
+        whereClause = {
+            OR: [
+                {
+                    title: {
+                        contains: searchQuery,
+                        mode: Prisma.QueryMode.insensitive
+                    }
+                },
+                {
+                    textContent: {
+                        path: ['$'],
+                        string_contains: searchQuery.toLowerCase()
+                    }
+                }
+            ]
+        };
+    }
+
+    const [count, data, tags] = await prisma.$transaction([
+        prisma.post.count({ where: whereClause }),
+        prisma.post.findMany({
+            where: whereClause,
+            take: postsPerPage,
+            skip: (currentPage - 1) * postsPerPage,
+            include: {
+                tags: true,
+                User: {
+                    select: {
+                        id: true,
+                        userName: true,
+                    }
+                },
+                comments: {
+                    select: {
+                        id: true,
+                    }
+                },
+            },
+            orderBy: {
+                createdAt: "desc",
+            }
+        }),
+        prisma.tag.findMany()
+    ]);
+
+    return { data, count, tags };
+}
+
+export async function searchPosts(query: string) {
+    const posts = await prisma.post.findMany({
+        where: {
+            OR: [
+                { title: {contains: query, mode: 'insensitive'} },
+                { textContent: {path: ['$'], string_contains: query} } 
+            ]
+        },
+        include: {
+            User: {
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    userName: true,
+                    imageUrl: true
+                }
+            },
+            Community: {
+                select: {
+                    name: true
+                },
+            },
+            tags: {
+                select: {
+                    name: true
+                }
+            },
+        },
+        orderBy: {
+            createdAt: 'desc'
+        }
+    });
+    return posts
 }

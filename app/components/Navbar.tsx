@@ -10,6 +10,8 @@ import prisma from "../lib/db"
 import NotificationBell from "./NotificationBell"
 import { TrendingUp, Award, Search } from 'lucide-react'
 import { Input } from "@/components/ui/input"
+import { useSearch } from "../context/SearchContext"
+import ClientSearchBar from "./ClientSearchBar"
 
 const Navbar = async () => {
     const { getUser } = getKindeServerSession();
@@ -31,14 +33,7 @@ const Navbar = async () => {
                 <Link href="/" className="flex items-center gap-x-3"> 
                     <Image src={logo} alt="desktop-text" className="h-[75px] w-auto hidden lg:block rounded-lg shadow-lg transition-transform duration-300 hover:scale-105" />
                 </Link>
-                <div className="relative hidden md:block">
-                    <Input 
-                        type="text" 
-                        placeholder="投稿を検索..." 
-                        className="pl-10 pr-4 py-2 rounded-full w-64 focus:w-80 transition-all duration-300"
-                    />
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                </div>
+                <ClientSearchBar />
             </div>
             <div className="flex items-center gap-x-4">
                 <Link href="/top-posts" passHref legacyBehavior>

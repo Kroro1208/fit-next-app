@@ -6,48 +6,18 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import CreatePostCard from "./components/CreatePostCard";
-import prisma from "./lib/db";
 import { Suspense } from "react";
 import SuspenseCard from "./components/SuspenseCard";
 import Pagination from "./components/Pagination";
 import UserInfoCard from "./components/UserInfo";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import FilterablePosts from "./components/FilterPosts";
+import { getData } from "./actions";
 
-async function getData(searchParam: string) {
-  const [count, data, tags] = await prisma.$transaction([
-    prisma.post.count(),
-    prisma.post.findMany({
-      take: 10,
-      skip: searchParam ? (Number(searchParam) - 1) * 10 : 0,
-      include: {
-        tags: true,
-        User: {
-          select: {
-            id: true,
-            userName: true,
-          }
-        },
-        comments: {
-          select: {
-            id: true,
-          }
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      }
-    }),
-    prisma.tag.findMany()
-  ]);
-
-  return { data, count, tags };
-}
-
-export default async function Home({searchParams}: {searchParams: {page: string}}) {
+export default async function Home({searchParams}: {searchParams: {page: string; search?: string}}) {
   const { getUser } = getKindeServerSession();
   const user = await getUser();
-  const { data, count, tags } = await getData(searchParams.page);
+  const { data, count, tags } = await getData(searchParams.page, searchParams.search);
   return (
     <div className="max-w-[1000px] mx-auto flex gap-x-10 mt-4 mb-10">
       <div className="w-[65%] flex flex-col gap-y-5">
