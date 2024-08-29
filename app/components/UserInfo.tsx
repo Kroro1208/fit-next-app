@@ -170,10 +170,10 @@ export default function UserInfoCard({ userId }: { userId: string }) {
                     </div>
                     
                     <div className="flex flex-col gap-y-3">
-                        <Link href={`/user/${userId}/posts`} passHref legacyBehavior>
+                        <Link href={`/user/${userId}/profile`} passHref legacyBehavior>
                             <Button variant="outline" className="justify-start">
                                 <FileText className="w-4 h-4 mr-2" />
-                                投稿した記事
+                                プロフィール
                             </Button>
                         </Link>
                         <Link href={`/user/${userId}/communities`} passHref legacyBehavior>

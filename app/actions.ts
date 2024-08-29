@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import type { ActionState, Post, UserProfileState } from "@/types";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
-import { Community } from '../types';
+
 
 export async function updateUserProfile(prevState: UserProfileState, formData: FormData): Promise<UserProfileState> {
     const supabase = createServerComponentClient({ cookies });
@@ -949,4 +949,31 @@ export async function searchPosts(query: string) {
         }
     });
     return posts
+}
+
+export async function getUserPosts(userId: string) {
+    const posts = await prisma.post.findMany({
+        where: {
+            userId: userId
+        },
+        include: {
+            User: {
+                select: {
+                    id: true,
+                    userName: true
+                }
+            },
+            Community: true,
+            comments: {
+                select: {
+                    id: true
+                }
+            },
+            tags: true
+        },
+        orderBy: {
+            createdAt: 'desc'
+        }
+    });
+    return posts;
 }
