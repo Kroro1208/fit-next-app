@@ -16,7 +16,7 @@ export default async function UserProfilePage({ params }: { params: { userId: st
     <div className="container mx-auto px-4">
       <UserProfile userId={params.userId} />
       <h2 className="text-2xl font-bold mt-8 mb-4">投稿一覧</h2>
-      <div className="space-y-4">
+      <div className="space-y-4 p-5">
         {userPosts.map((post: Post) => (
           <PostCard
             key={post.id}

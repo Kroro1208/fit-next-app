@@ -27,7 +27,7 @@ const UserDropDown = ({ userImage }: Props) => {
                 <Link href="/fit/create">コミュニティをつくる</Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
-                <Link href="/fit/naoy/create">投稿作成</Link>
+                <Link href="/fit/naoya/create">投稿作成</Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
                 <Link href="/settings">設定</Link>
