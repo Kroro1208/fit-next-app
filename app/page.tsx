@@ -47,7 +47,7 @@ export default async function Home({searchParams}: {searchParams: {page: string;
             </div>
           </div>
         </Card>
-        {user && <UserInfoCard userId={user.id} />}
+        {user && <UserInfoCard userId={user.id}/>}
       </div>
     </div>
   );

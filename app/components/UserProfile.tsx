@@ -2,13 +2,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { UserCircle, FileText, Bookmark, Settings, MessageSquare, Users, X, User2Icon } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Settings, MessageSquare, X, User2Icon } from "lucide-react";
 import { getUserInfo, followUser } from "../actions";
 import { useState, useEffect } from "react";
 import Link from 'next/link';
@@ -24,7 +18,7 @@ interface UserProfile {
   followingCount: number;
 }
 
-export default function UserProfile({ userId }: { userId: string }) {
+export default function UserProfile({ userId, currentUserId }: { userId: string, currentUserId: string }) {
     const [userInfo, setUserInfo] = useState<UserProfile | null>(null);
     const [isFollowing, setIsFollowing] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -49,7 +43,7 @@ export default function UserProfile({ userId }: { userId: string }) {
     const handleFollow = async () => {
         if (!userInfo) return;
 
-        if (userInfo.id === userId) {
+        if (currentUserId === userId) {
             setToastMessage("自分自身はフォローできません");
             return;
         }
