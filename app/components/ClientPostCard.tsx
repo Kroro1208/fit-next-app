@@ -1,15 +1,13 @@
 "use client";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { MessageCircle, Share2, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, MessageCircle, Share2, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import CopyLink from './CopyLink';
-import UpVoteButton from './UpVoteButton';
-import DownVoteButton from './DownVoteButton';
 import RenderJson from './RenderJson';
 import { Progress } from '@/components/ui/progress';
 import { useRouter } from 'next/navigation';
@@ -18,6 +16,8 @@ import { useClientVote } from '../hooks/useClientVote';
 import type { TipTapContent } from '@/types';
 import type { Prisma } from '@prisma/client';
 import { deletePost } from '../actions';
+import ClientUpVoteButton from './ClientUpVoteButton';
+import ClientDownVoteButton from './ClientDownVoteButton';
 
 interface Props {
     title: string;
@@ -52,8 +52,8 @@ type ProcessedContent =
         jsonContent,
         subName,
         userName,
-        upVoteCount,
-        downVoteCount,
+        upVoteCount: initialUpVoteCount,
+        downVoteCount: initialDownVoteCount,
         commentAmount,
         trustScore,
         shareLinkVisible,
@@ -62,17 +62,25 @@ type ProcessedContent =
         tags,
         userVote
     }) => {
-        const router = useRouter();
         const { toast } = useToast();
+        const [localUpVoteCount, setLocalUpVoteCount] = useState(initialUpVoteCount);
+        const [localDownVoteCount, setLocalDownVoteCount] = useState(initialDownVoteCount);
         const { voteState, clientVote } = useClientVote(
-            { upVoteCount, downVoteCount, trustScore, userVote },
+            { upVoteCount: localUpVoteCount, downVoteCount: localDownVoteCount, trustScore, userVote },
             id
         );
-        const [isVoting, setIsVoting] = useState(false);
+        const [isUpVoting, setIsUpVoting] = useState(false);
+        const [isDownVoting, setIsDownVoting] = useState(false);
         const [isDeleting, setIsDeleting] = useState(false);
+
+        useEffect(() => {
+            setLocalUpVoteCount(voteState.upVoteCount);
+            setLocalDownVoteCount(voteState.downVoteCount);
+        }, [voteState]);
     
         const handleVote = async (direction: 'UP' | 'DOWN') => {
-            setIsVoting(true);
+            const setVotingState = direction === "UP" ? setIsUpVoting : setIsDownVoting;
+            setVotingState(true)
             try {
                 await clientVote(direction);
             } catch (error) {
@@ -83,7 +91,7 @@ type ProcessedContent =
                     description: '投票に失敗しました。もう一度お試しください。'
                 });
             } finally {
-                setIsVoting(false);
+                setVotingState(false);
             }
         };
 
@@ -189,21 +197,19 @@ type ProcessedContent =
     return (
         <Card className='w-full'>
             <div className='flex'>
-                <div className='flex flex-col items-center justify-center gap-3 p-2 bg-muted'>
+                <div className='flex flex-col items-center justify-center gap-3 p-2'>
                     <button 
                         type='button'
-                        onClick={() => handleVote('UP')} 
-                        disabled={isVoting}
+                        disabled={isUpVoting}
                     >
-                        <UpVoteButton />
+                        <ClientUpVoteButton isLoading={isUpVoting} onclick={() => handleVote('UP')}/>
                     </button>
                     <span className='text-sm font-bold my-1'>{totalVote}</span>
                     <button
-                    type='button'
-                        onClick={() => handleVote('DOWN')} 
-                        disabled={isVoting}
+                        type='button'
+                        disabled={isDownVoting}
                     >
-                        <DownVoteButton />
+                        <ClientDownVoteButton  isLoading={isDownVoting} onclick={() => handleVote('DOWN')}/>
                     </button>
                 </div>
                 <div className='flex-1'>
@@ -298,8 +304,12 @@ type ProcessedContent =
                             )}
                         </div>
                         <div className='flex items-center space-x-2'>
-                            <Badge variant='secondary'>UP: {voteState.upVoteCount}</Badge>
-                            <Badge variant='secondary'>DOWN: {voteState.downVoteCount}</Badge>
+                            <Badge variant='outline' className='bg-green-100 text-green-800 border-green-300'>
+                                <ArrowUp className='mr-1 h-3 w-3' /> {localUpVoteCount}
+                            </Badge>
+                            <Badge variant='outline' className='bg-red-100 text-red-800 border-red-300'>
+                                <ArrowDown className='mr-1 h-3 w-3' /> {localDownVoteCount}
+                            </Badge>
                         </div>
                     </CardFooter>
                 </div>

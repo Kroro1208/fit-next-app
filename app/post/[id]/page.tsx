@@ -4,7 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AlarmClock, MessageCircle, Share2 } from "lucide-react";
+import { AlarmClock, ArrowDown, ArrowUp, MessageCircle, Share2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { handleVote, isBookmarked } from "@/app/actions";
@@ -177,10 +177,14 @@ const PostPage = async ({ params }: { params: {id: string, userId: string} }) =>
                                         />
                                     )}
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                    <Badge variant="secondary">UP: {upVoteCount}</Badge>
-                                    <Badge variant="secondary">DOWN: {downVoteCount}</Badge>
-                                </div>
+                                <div className='flex items-center space-x-2'>
+                                <Badge variant='outline' className='bg-green-100 text-green-800 border-green-300'>
+                                    <ArrowUp className='mr-1 h-3 w-3' /> {upVoteCount}
+                                </Badge>
+                                <Badge variant='outline' className='bg-red-100 text-red-800 border-red-300'>
+                                    <ArrowDown className='mr-1 h-3 w-3' /> {downVoteCount}
+                                </Badge>
+                            </div>
                             </CardFooter>
                         </div>
                     </div>
