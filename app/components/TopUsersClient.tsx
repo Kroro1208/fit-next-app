@@ -41,8 +41,8 @@ export default function TopUsersClient({initialTopUsers}: TopUsersClientProps) {
   return (
     <Card className="mt-5">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold flex items-center gap-2">
-          優良ユーザーランキング
+        <CardTitle className="text-2xl font-bold flex items-center justify-center gap-2">
+          Top User Rank
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -50,10 +50,10 @@ export default function TopUsersClient({initialTopUsers}: TopUsersClientProps) {
           {initialTopUsers.map((user) => (
             <Tooltip key={user.id}>
               <TooltipTrigger asChild>
-                <Link href={`/user/${user.id}`}>
+                <Link href={`/user/${user.id}`} className="block">
                   <div className="flex items-center mb-4 p-3 rounded-lg hover:bg-gray-100 transition-colors duration-200 cursor-pointer">
                     <div className="mr-4 relative">
-                    <Avatar className="w-12 h-12">
+                      <Avatar className="w-12 h-12">
                         <Image
                           src={user.avatar}
                           alt={user.name}
@@ -67,11 +67,12 @@ export default function TopUsersClient({initialTopUsers}: TopUsersClientProps) {
                         {getRankIcon(user.rank)}
                       </div>
                     </div>
-                    <Link href={`/user/${user.id}/profile`} className="flex-grow">
-                      <p className="font-semibold">{user.name}</p>
+                    <div className="flex-grow flex items-center justify-between">
+                      <Link href={`/user/${user.id}/profile`} className="font-semibold">
+                        {user.name}
+                      </Link>
                       <p className="text-sm text-muted-foreground">スコア: {user.score}</p>
-                    </Link>
-                    <div className="text-2xl font-bold text-blue-500">#{user.rank}</div>
+                    </div>
                   </div>
                 </Link>
               </TooltipTrigger>
