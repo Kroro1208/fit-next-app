@@ -1,6 +1,4 @@
 "use client";
-
-import React from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -11,6 +9,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import Link from 'next/link';
+import { useKindeBrowserClient } from '@kinde-oss/kinde-auth-nextjs';
 
 interface TopUser {
   id: string;
@@ -38,6 +37,7 @@ const getRankIcon = (rank: number) => {
 };
 
 export default function TopUsersClient({initialTopUsers}: TopUsersClientProps) {
+  const { user } = useKindeBrowserClient();
   return (
     <Card className="mt-5">
       <CardHeader>
@@ -67,10 +67,10 @@ export default function TopUsersClient({initialTopUsers}: TopUsersClientProps) {
                         {getRankIcon(user.rank)}
                       </div>
                     </div>
-                    <div className="flex-grow">
+                    <Link href={`/user/${user.id}/profile`} className="flex-grow">
                       <p className="font-semibold">{user.name}</p>
                       <p className="text-sm text-muted-foreground">スコア: {user.score}</p>
-                    </div>
+                    </Link>
                     <div className="text-2xl font-bold text-blue-500">#{user.rank}</div>
                   </div>
                 </Link>

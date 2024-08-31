@@ -57,7 +57,6 @@ type ProcessedContent =
 const PostCard: React.FC<PostCardProps> = (props) => {
     const router = useRouter();
     const { toast } = useToast();
-    const [ isVoting, setIsVoting ] = useState(false);
 
     if (props.isClientSide) {
     return (
@@ -203,9 +202,9 @@ const PostCard: React.FC<PostCardProps> = (props) => {
                             <Link href={`/fit/${subName}`} className='font-semibold text-sm hover:underline'>
                                 fit/{subName}
                             </Link>
-                            <p className='text-sm text-muted-foreground'>
+                            <Link href={`/user/${userId}/profile`}  className='text-sm text-muted-foreground'>
                                 投稿者: <span className='font-medium hover:underline'>{userName}</span>
-                            </p>
+                            </Link >
                         </div>
                         <TooltipProvider>
                             <Tooltip>

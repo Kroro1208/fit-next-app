@@ -42,10 +42,10 @@ const Navbar = async () => {
                         <span className="hidden sm:inline">優良記事ランキング</span>
                     </Button>
                 </Link>
-                <Link href="top-authors" passHref legacyBehavior>
+                <Link href="top-comments" passHref legacyBehavior>
                     <Button variant="ghost" className="flex items-center gap-2 rounded-full text-white hover:bg-green-700 hover:text-white dark:hover:text-white transition-colors duration-300">
                         <Award size={18} />
-                        <span className="hidden sm:inline">優良ユーザーランキング</span>
+                        <span className="hidden sm:inline">盛り上がり記事ランキング</span>
                     </Button>
                 </Link>
                 {user && (
