@@ -10,6 +10,10 @@ import { cookies } from "next/headers";
 
 export async function updateUserProfile(prevState: UserProfileState, formData: FormData): Promise<UserProfileState> {
     const supabase = createServerComponentClient({ cookies });
+    // const { data: { session } } = await supabase.auth.getSession();
+    // if(!session) {
+    //     return { message: "認証されていません", status: "error" };
+    // }
     
     try {
         const { getUser } = getKindeServerSession();

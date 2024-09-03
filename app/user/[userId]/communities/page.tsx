@@ -1,10 +1,12 @@
 "use client";
 import { getUserCommunities } from "@/app/actions";
+import Loading from "@/app/components/Loading";
+import SuspenseCard from "@/app/components/SuspenseCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlusCircle } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 interface Communty {
     id: string;
@@ -13,6 +15,10 @@ interface Communty {
     createdAt: string;
     postCount: number;
 }
+
+const EmptyMessage = () => (
+    <p className="mt-4 text-gray-500">コミュニティがありません。新しく作成してみましょう！</p>
+)
 
 const UserCommuntyPage = ({params}: {params: {userId: string}}) => {
     const [communities, setCommunities] = useState<Communty[]>([]);
@@ -47,32 +53,35 @@ const UserCommuntyPage = ({params}: {params: {userId: string}}) => {
             </div>
             <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
                 <div className="px-4 py-6 sm:px-0">
-                    {communities.length === 0 ? (
-                        <div className="text-center">
-                            <p className="mt-4 text-gray-500">コミュニティがありません。新しく作成してみましょう！</p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {communities.map(community => (
-                                <Card key={community.id}>
-                                    <CardHeader>
-                                        <CardTitle className="text-xl">
-                                            <Link href={`/fit/${community.name}`} className="hover:underline">
-                                                {community.name}
-                                            </Link>
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <p className="text-gray-500 mb-2">{community.description || "説明なし"}</p>
-                                        <div className="flex justify-between text-sm text-gray-500">
-                                            <span>投稿数: {community.postCount}</span>
-                                            <span>作成日: {new Date(community.createdAt).toLocaleDateString()}</span>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
-                    )}
+                    <Suspense fallback={<SuspenseCard />}>
+                        { isLoading ? (
+                            <SuspenseCard />
+                        ) : 
+                            communities.length === 0 ? (
+                                <EmptyMessage />
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {communities.map(community => (
+                                        <Card key={community.id}>
+                                            <CardHeader>
+                                                <CardTitle className="text-xl">
+                                                    <Link href={`/fit/${community.name}`} className="hover:underline">
+                                                        {community.name}
+                                                    </Link>
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <p className="text-gray-500 mb-2">{community.description || "説明なし"}</p>
+                                                <div className="flex justify-between text-sm text-gray-500">
+                                                    <span>投稿数: {community.postCount}</span>
+                                                    <span>作成日: {new Date(community.createdAt).toLocaleDateString()}</span>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </div>
+                            )}
+                    </Suspense>
                 </div>
             </main>
         </div>

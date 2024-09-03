@@ -13,6 +13,7 @@ import { getUserInfo, followUser } from "../actions";
 import { useState, useEffect } from "react";
 import Link from 'next/link';
 import { Toast, ToastProvider, ToastViewport } from "@radix-ui/react-toast";
+import SuspenseCard from "./SuspenseCard";
 
 interface UserInfo {
   id: string;
@@ -72,7 +73,7 @@ export default function UserInfoCard({ userId }: { userId: string }) {
     };
 
     if (isLoading) {
-        return <div>Loading...</div>;
+        return <SuspenseCard />;
     }
 
     if (!userInfo) {
