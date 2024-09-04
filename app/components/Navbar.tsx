@@ -8,9 +8,7 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server"
 import UserDropDown from "./UserDropDown"
 import prisma from "../lib/db"
 import NotificationBell from "./NotificationBell"
-import { TrendingUp, Award, Search } from 'lucide-react'
-import { Input } from "@/components/ui/input"
-import { useSearch } from "../context/SearchContext"
+import { TrendingUp, Award } from 'lucide-react'
 import ClientSearchBar from "./ClientSearchBar"
 
 const Navbar = async () => {
@@ -42,7 +40,7 @@ const Navbar = async () => {
                         <span className="hidden sm:inline">優良記事ランキング</span>
                     </Button>
                 </Link>
-                <Link href="top-comments" passHref legacyBehavior>
+                <Link href="/top-comments" passHref legacyBehavior>
                     <Button variant="ghost" className="flex items-center gap-2 rounded-full text-white hover:bg-green-700 hover:text-white dark:hover:text-white transition-colors duration-300">
                         <Award size={18} />
                         <span className="hidden sm:inline">盛り上がり記事ランキング</span>
