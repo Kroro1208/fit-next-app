@@ -1,4 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { ScrollArea } from "@/components/ui/scroll-area"
+
 interface Notification {
   id: string;
   message: string;
@@ -7,6 +9,7 @@ interface Notification {
   postTitle?: string;
   commentText?: string;
 }
+
 interface NotificationModalProps {
   notifications: Notification[];
   onClose: () => void;
@@ -15,22 +18,24 @@ interface NotificationModalProps {
 const NotificationModal = ({ notifications, onClose }: NotificationModalProps) => {
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>通知</DialogTitle>
         </DialogHeader>
-        <div className="mt-4">
+        <ScrollArea className="mt-4 h-[60vh] pr-4">
           {notifications.length > 0 ? (
-            notifications.map((notification, index) => (
-              <div key={notification.id} className="mb-2 p-2 bg-secondary rounded">
-                <p>{notification.message}</p>
-                <small>{new Date(notification.createdAt).toLocaleString()}</small>
+            notifications.map((notification) => (
+              <div key={notification.id} className="mb-4 p-3 bg-secondary rounded-lg shadow-sm">
+                <p className="text-sm">{notification.message}</p>
+                <small className="text-xs text-muted-foreground">
+                  {new Date(notification.createdAt).toLocaleString()}
+                </small>
               </div>
             ))
           ) : (
-            <p>新しい通知はありません。</p>
+            <p className="text-center text-muted-foreground">新しい通知はありません。</p>
           )}
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   )
