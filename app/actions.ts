@@ -652,8 +652,15 @@ export async function getUserInfo(userId: string) {
                     followers: true,
                     following: true
                 }
+            },
+            // 現在のユーザーが表示中のユーザーをフォローしているか
+            // 取得したユーザーのフォロワーIDに現在のユーザーIDがあるか確認
+            followers: {
+                where: {
+                    followerId: currentUser.id
+                }
             }
-        }
+        },
     });
     if (!dbUser) return null;
 
@@ -664,7 +671,8 @@ export async function getUserInfo(userId: string) {
         postCount: dbUser._count.posts,
         commentCount: dbUser._count.Comment,
         followerCount: dbUser._count.followers,
-        followingCount: dbUser._count.following
+        followingCount: dbUser._count.following,
+        isFollowing: dbUser.followers.length > 0
     };
 }
 

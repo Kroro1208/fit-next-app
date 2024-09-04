@@ -7,6 +7,7 @@ import { getUserInfo, followUser } from "../actions";
 import { useState, useEffect } from "react";
 import Link from 'next/link';
 import { Toast, ToastProvider, ToastViewport } from "@radix-ui/react-toast";
+import SuspenseCard from "./SuspenseCard";
 
 interface UserProfile {
   id: string;
@@ -16,11 +17,11 @@ interface UserProfile {
   commentCount: number;
   followerCount: number;
   followingCount: number;
+  isFollowing: boolean;
 }
 
 export default function UserProfile({ userId, currentUserId }: { userId: string, currentUserId: string }) {
     const [userInfo, setUserInfo] = useState<UserProfile | null>(null);
-    const [isFollowing, setIsFollowing] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [toastMessage, setToastMessage] = useState("");
 
@@ -51,11 +52,9 @@ export default function UserProfile({ userId, currentUserId }: { userId: string,
         try {
             const result = await followUser(userId);
             if (result.action === "follow") {
-                setIsFollowing(true);
                 setUserInfo(prev => prev ? {...prev, followerCount: prev.followerCount + 1} : null);
                 setToastMessage("フォローしました");
             } else {
-                setIsFollowing(false);
                 setUserInfo(prev => prev ? {...prev, followerCount: prev.followerCount - 1} : null);
                 setToastMessage("フォロー解除しました");
             }
@@ -66,7 +65,7 @@ export default function UserProfile({ userId, currentUserId }: { userId: string,
     };
 
     if (isLoading) {
-        return <div>Loading...</div>;
+        return <SuspenseCard />;
     }
 
     if (!userInfo) {
@@ -95,11 +94,11 @@ export default function UserProfile({ userId, currentUserId }: { userId: string,
                                 <p className="text-gray-600">@{userInfo.userName.toLowerCase().replace(/\s+/g, '')}</p>
                             </div>
                             <Button 
-                                variant={isFollowing ? "outline" : "default"}
+                                variant={userInfo.isFollowing ? "outline" : "default"}
                                 onClick={handleFollow}
                                 className="px-6 py-2 rounded-full transition duration-300 ease-in-out transform hover:scale-105"
                             >
-                                {isFollowing ? "フォロー解除" : "フォローする"}
+                                {userInfo.isFollowing ? "フォロー解除" : "フォローする"}
                             </Button>
                         </div>
 

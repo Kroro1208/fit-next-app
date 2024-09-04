@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import { useEffect, useState } from 'react'
 import { followUser } from '@/app/actions'
 import { toast } from "@/components/ui/use-toast"
+import SuspenseCard from '@/app/components/SuspenseCard'
+import Link from 'next/link'
 
 interface User {
     id: string;
@@ -39,7 +41,8 @@ export default function UserConnections({ params }: { params: { userId: string }
                     throw new Error('Failed to fetch connections')
                 }
                 const data = await response.json()
-                setFollowers(data.followers.map((user: User) => ({ ...user, isFollowing: false })))
+                const followersIds = new Set(data.following.map((user: User) => user.id))
+                setFollowers(data.followers.map((user: User) => ({ ...user, isFollowing: followersIds.has(user.id) })))
                 setFollowing(data.following.map((user: User) => ({ ...user, isFollowing: true })))
             } catch (error) {
                 console.error('Error fetching connections:', error)
@@ -101,10 +104,10 @@ export default function UserConnections({ params }: { params: { userId: string }
                                 <AvatarImage src={user.imageUrl || undefined} alt={`${user.firstName} ${user.lastName}`} />
                                 <AvatarFallback>{user.firstName.charAt(0)}{user.lastName.charAt(0)}</AvatarFallback>
                             </Avatar>
-                            <div>
+                            <Link href={`/user/${user.id}/profile`}>
                                 <p className="font-semibold">{user.firstName} {user.lastName}</p>
                                 <p className="text-sm text-gray-500">@{user.userName}</p>
-                            </div>
+                            </Link>
                         </div>
                         <Button 
                             variant={user.isFollowing ? "outline" : "default"} 
@@ -120,7 +123,7 @@ export default function UserConnections({ params }: { params: { userId: string }
     )
 
     if (isLoading) {
-        return <div>Loading...</div>
+        return <SuspenseCard />
     }
 
     return (
